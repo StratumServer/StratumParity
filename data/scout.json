@@ -13063,6 +13063,244 @@
     }
    },
    "parity": true
+  },
+  {
+   "run_id": "35509428458",
+   "sha": "0a8668d47346",
+   "date": "2026-09-20T12:05:44Z",
+   "stratum_tag": "v1.22.7-stratum.2-indev.1",
+   "event": "schedule",
+   "stratum_sha": "e964db301b29",
+   "atlas_version": "0.13.1",
+   "vs_version": "1.22.7",
+   "scenarios": {
+    "BlockTickListenerDisabledScenarios.FarListener_Should_FireFullRate_When_LimitDisabledByConfig": {
+     "v": [
+      "Passed",
+      4.89
+     ],
+     "s": [
+      "Passed",
+      5.14
+     ]
+    },
+    "BlockTickListenerProbes.FarListener_Should_FireOnVanillaAndFreezeOnStratum_When_DefaultsActive": {
+     "v": [
+      "Passed",
+      4.94
+     ],
+     "s": [
+      "Passed",
+      4.9
+     ]
+    },
+    "BlockTickListenerProbes.ForceLoadedFarListener_Should_KeepFiring_When_ColumnIsKeptLoaded": {
+     "v": [
+      "Passed",
+      4.89
+     ],
+     "s": [
+      "Passed",
+      4.97
+     ]
+    },
+    "ChunkPersistenceScenarios.LightLevels_Should_SurviveUnloadReload_When_TorchIsLit": {
+     "v": [
+      "Passed",
+      3.82
+     ],
+     "s": [
+      "Passed",
+      5.66
+     ]
+    },
+    "ChunkPersistenceScenarios.ModifiedColumn_Should_SurviveUnloadReload_When_SavedBeforeUnload": {
+     "v": [
+      "Passed",
+      2.64
+     ],
+     "s": [
+      "Passed",
+      2.49
+     ]
+    },
+    "ChunkPersistenceScenarios.RepeatedCycles_Should_PersistEveryMutation_When_ColumnIsRecycled": {
+     "v": [
+      "Passed",
+      6.87
+     ],
+     "s": [
+      "Passed",
+      6.9
+     ]
+    },
+    "CommandParityScenarios.HomeCommands_Should_ExistOnlyOnStratum_When_Executed": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.01
+     ]
+    },
+    "CommandParityScenarios.StratumCommand_Should_ExistOnlyOnStratum_When_Executed": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "CommandParityScenarios.TimeAdd_Should_AdvanceCalendar_When_Executed": {
+     "v": [
+      "Passed",
+      0.04
+     ],
+     "s": [
+      "Passed",
+      0.04
+     ]
+    },
+    "CommandParityScenarios.UnknownCommand_Should_ReportSameErrorCode_When_Executed": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "EntityTickingDisabledScenarios.FarEntity_Should_TickFullRate_When_EntityTickingDisabledByConfig": {
+     "v": [
+      "Passed",
+      7.55
+     ],
+     "s": [
+      "Passed",
+      7.61
+     ]
+    },
+    "EntityTickingProbes.FarCreature_Should_TickFullRateOnVanillaAndThrottledOnStratum_When_DefaultsActive": {
+     "v": [
+      "Passed",
+      7.5
+     ],
+     "s": [
+      "Passed",
+      7.53
+     ]
+    },
+    "EntityTickingProbes.FarEntity_Should_TickFullRateOnVanillaAndThrottledOnStratum_When_DefaultsActive": {
+     "v": [
+      "Passed",
+      7.55
+     ],
+     "s": [
+      "Passed",
+      7.61
+     ]
+    },
+    "RandomTickDisabledScenarios.FarPlatform_Should_Convert_When_LimitDisabledByConfig": {
+     "v": [
+      "Passed",
+      1.85
+     ],
+     "s": [
+      "Passed",
+      1.88
+     ]
+    },
+    "RandomTickProbes.FarPlatform_Should_ConvertOnVanillaAndStayUntouchedOnStratum_When_DefaultsActive": {
+     "v": [
+      "Passed",
+      0.98
+     ],
+     "s": [
+      "Passed",
+      21.0
+     ]
+    },
+    "SmokeParityScenarios.JoinedPlayer_Should_StayConnected_When_ServerTicks": {
+     "v": [
+      "Passed",
+      3.63
+     ],
+     "s": [
+      "Passed",
+      3.64
+     ]
+    },
+    "SmokeParityScenarios.LoadedServer_Should_MatchExpectedFlavor_When_CiArmsTheGuard": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "SmokeParityScenarios.Server_Should_BootAndAdvanceClock_When_Ticked": {
+     "v": [
+      "Passed",
+      1.0
+     ],
+     "s": [
+      "Passed",
+      1.0
+     ]
+    },
+    "SmokeParityScenarios.SetBlock_Should_ReadBackSameCode_When_Placed": {
+     "v": [
+      "Passed",
+      0.17
+     ],
+     "s": [
+      "Passed",
+      0.17
+     ]
+    },
+    "TickCostProbes.TickCost_NearBand": {
+     "v": [
+      "Passed",
+      51.42
+     ],
+     "s": [
+      "Passed",
+      53.21
+     ],
+     "metrics": {
+      "v": {
+       "ms_per_tick": 20.783,
+       "idle_ms_per_tick": 0.0,
+       "load_entities": 1000.0
+      },
+      "s": {
+       "ms_per_tick": 3.55,
+       "idle_ms_per_tick": 0.0,
+       "load_entities": 1000.0
+      },
+      "ratio": 0.171
+     }
+    }
+   },
+   "totals": {
+    "vanilla": {
+     "passed": 20,
+     "total": 20,
+     "duration": 109.73
+    },
+    "stratum": {
+     "passed": 20,
+     "total": 20,
+     "duration": 133.77
+    }
+   },
+   "parity": true
   }
  ]
 }
