@@ -86,7 +86,7 @@ VINTAGE_STORY=/path/to/stratum-server dotnet test -c Release
 ```
 
 Both installs plus a comparison report (requires the Atlas CLI at the same version as the
-package the project references: `dotnet tool install -g Pixnop.Atlas.Cli --version 0.15.0`):
+package the project references: `dotnet tool install -g Pixnop.Atlas.Cli --version 0.15.1`):
 
 ```bash
 scripts/run-parity.sh /path/to/vanilla-server /path/to/stratum-server
@@ -127,6 +127,6 @@ Atlas 0.11.
 
 ## Versions
 
-Pinned expectations: Vintage Story 1.22.7, Stratum v1.22.7-stratum.2, Atlas 0.15.0.
+Pinned expectations: Vintage Story 1.22.7, Stratum v1.22.7-stratum.2, Atlas 0.15.1.
 Stratum moves fast (releases every few days); when a scenario starts failing on a new
 Stratum release, that is the suite doing its job.
