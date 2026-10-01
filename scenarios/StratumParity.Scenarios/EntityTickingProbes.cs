@@ -52,7 +52,8 @@ public class EntityTickingProbes : AtlasScenarioBase
 
         // Exact on both flavors: an unthrottled entity ticks once per entity-simulation tick.
         Assert.True(nearDelta == simDelta,
-            $"near probe not exact on {ServerFlavor.Name}: {nearDelta} ticks vs {simDelta} sim ticks");
+            $"near probe not exact on {ServerFlavor.Name}: {nearDelta} ticks vs {simDelta} sim ticks; " +
+            $"{DescribeTickDeltas(nearDelta, farDelta, simDelta)}");
 
         if (ServerFlavor.IsStratum)
         {
@@ -65,18 +66,21 @@ public class EntityTickingProbes : AtlasScenarioBase
         else
         {
             Assert.True(farDelta == simDelta,
-                $"far probe not exact on vanilla: {farDelta} ticks vs {simDelta} sim ticks");
+                $"far probe not exact on vanilla: {farDelta} ticks vs {simDelta} sim ticks; " +
+                $"{DescribeTickDeltas(nearDelta, farDelta, simDelta)}");
         }
     }
 
     [AtlasScenario(TimeoutMs = 120_000)]
     public async Task FarCreature_Should_TickFullRateOnVanillaAndThrottledOnStratum_When_DefaultsActive()
     {
-        // ThrottleCreatures (default true) is never exercised by the dummy probe above: a
-        // straw dummy is inanimate, covered by ThrottleInanimate instead. SkipMovingEntities
-        // exempts entities moving above 0.01 blocks/tick, so a creature whose idle AI wanders
-        // would silently land on the unthrottled path; see FarCreatureCode's comment for why
-        // a raccoon does not.
+        // The dummy probe above already takes the creature path: a straw dummy is an
+        // EntityAgent, whose IsCreature is true, so it falls under ThrottleCreatures and the
+        // creature budget (ThrottleInanimate covers only non-creatures such as items,
+        // projectiles and armor stands). What it never exercises is a creature with a live
+        // AI: SkipMovingEntities exempts entities moving above 0.01 blocks/tick, so a
+        // creature whose idle AI wanders would silently land on the unthrottled path; see
+        // FarCreatureCode's comment for why a raccoon does not.
         ProbePair pair = await SpawnProbePair(World, "tick-anchor-2", FarCreatureCode);
         EntityPos farPos = pair.FarEntity.Pos;
         double farStartX = farPos.X, farStartY = farPos.Y, farStartZ = farPos.Z;
@@ -94,7 +98,8 @@ public class EntityTickingProbes : AtlasScenarioBase
         Assert.True(simDelta > 0, $"no entity-simulation ticks elapsed on {ServerFlavor.Name}");
 
         Assert.True(nearDelta == simDelta,
-            $"near creature not exact on {ServerFlavor.Name}: {nearDelta} ticks vs {simDelta} sim ticks");
+            $"near creature not exact on {ServerFlavor.Name}: {nearDelta} ticks vs {simDelta} sim ticks; " +
+            $"{DescribeTickDeltas(nearDelta, farDelta, simDelta)}");
 
         if (ServerFlavor.IsStratum)
         {
@@ -106,7 +111,8 @@ public class EntityTickingProbes : AtlasScenarioBase
         else
         {
             Assert.True(farDelta == simDelta,
-                $"far creature not exact on vanilla: {farDelta} ticks vs {simDelta} sim ticks");
+                $"far creature not exact on vanilla: {farDelta} ticks vs {simDelta} sim ticks; " +
+                $"{DescribeTickDeltas(nearDelta, farDelta, simDelta)}");
         }
     }
 
@@ -163,6 +169,20 @@ public class EntityTickingProbes : AtlasScenarioBase
         await world.Ticks(60);
         return new ProbePair(anchor, nearPos, near.Counter, far.Counter, far.Entity);
     }
+
+    /// <summary>Counter deltas for the exact-count failure messages, with a reading key.
+    /// The assertions stay exact. The counter is stamped before the engine's entity pass
+    /// runs, so a pass that throws still counts as a simulation tick for Atlas while
+    /// ticking nothing. The key is a hint, not a verdict: far is only comparable when it is
+    /// unthrottled, and on Stratum defaults only the server log separates the two shapes.</summary>
+    internal static string DescribeTickDeltas(int nearDelta, int farDelta, long simDelta) =>
+        $"deltas: near {nearDelta}, far {farDelta}, sim {simDelta}. Reading: every unthrottled probe short of sim " +
+        "by the same count suggests whole entity simulation passes were aborted (exception through " +
+        "ServerSystemEntitySimulation.OnServerTick in server-main.log); one probe short while the other " +
+        "unthrottled probe is exact suggests an exception inside that entity's own OnGameTick " +
+        "('Exception while ticking entity' in server-main.log). far is only comparable when unthrottled " +
+        "(vanilla, or EntityTicking off): on Stratum defaults it runs at about sim/10 and only the log " +
+        "separates the two.";
 
     /// <summary>End-of-window guard, setup-failure semantics: if the anchor drifted toward
     /// the band boundary (entity spawns can nudge players), the run is invalid rather than

@@ -36,9 +36,11 @@ public class EntityTickingDisabledScenarios : AtlasScenarioBase
         Assert.True(simDelta > 0, $"no entity-simulation ticks elapsed on {ServerFlavor.Name}");
 
         Assert.True(nearDelta == simDelta,
-            $"near probe not exact on {ServerFlavor.Name}: {nearDelta} ticks vs {simDelta} sim ticks");
+            $"near probe not exact on {ServerFlavor.Name}: {nearDelta} ticks vs {simDelta} sim ticks; " +
+            $"{EntityTickingProbes.DescribeTickDeltas(nearDelta, farDelta, simDelta)}");
         Assert.True(farDelta == simDelta,
             $"far probe throttled on {ServerFlavor.Name} despite EntityTicking.Enabled=false: " +
-            $"{farDelta} ticks vs {simDelta} sim ticks");
+            $"{farDelta} ticks vs {simDelta} sim ticks; " +
+            $"{EntityTickingProbes.DescribeTickDeltas(nearDelta, farDelta, simDelta)}");
     }
 }
