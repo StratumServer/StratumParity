@@ -17,8 +17,8 @@ namespace StratumParity.Scenarios;
 ///   and simDelta/VeryFarTickInterval (1 in 10, within stride phase) on Stratum.
 ///
 /// Anchoring rules from the contract: the player is teleported to a fixed position first
-/// (the join scatters players ~15 blocks, which once put this very probe's near dummy in
-/// the fork's mid band on some runs), geometry derives from the anchor's actual position
+/// (the join scatters players up to the world's spawnRadius, 50 blocks, which once put
+/// this very probe's near dummy in the fork's mid band on some runs), geometry derives from the anchor's actual position
 /// read after the teleport settles, and the end of the window re-checks the anchor-dummy
 /// distance as setup-failure semantics so a drift can never read as a wrong count.
 /// </summary>
