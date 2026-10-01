@@ -51,7 +51,9 @@ the two trend lines on the dashboard are read by a human.
 Locally it shows Stratum's core tick loop at roughly a third of vanilla's cost (its per-tick
 allocation and LINQ reductions). Caveats: headless single-process superflat world, not a
 realistic multiplayer benchmark; numbers near the 1ms floor are trend, not value; the load size
-is a runner-speed-tuned constant. See `scenarios/StratumParity.Scenarios/TickCostReader.cs`.
+is a runner-speed-tuned constant. The figure is the mean per-pass busy time that Atlas's
+`MeasureTicks` reports (`PassTimingStats.MeanMs`), median of five 90-tick windows; see
+`scenarios/StratumParity.Scenarios/TickCostProbes.cs`.
 
 Field results so far: Stratum's chunk persistence is byte-faithful, its throttles behave
 as documented and their toggles genuinely restore vanilla behavior, and no behavioral
