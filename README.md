@@ -110,8 +110,9 @@ Atlas 0.11.
 - `scenarios/StratumParity.Scenarios/`: the xUnit scenario project (consumes the
   `Pixnop.Atlas.XUnit` NuGet package)
 - `scenarios/StratumParity.Scenarios/mods/randomtickprobe/`: test-only source mod
-  (compiled by the game's ModLoader) whose block turns to granite on every random tick,
-  so random tick coverage becomes countable world state
+  (compiled by the game's ModLoader): probe blocks that turn to granite or andesite on a
+  random tick, so random tick coverage becomes countable world state, and counter blocks
+  that log neighbour updates and sampled random ticks for the scenarios to read
 - `scenarios/StratumParity.Scenarios/fixtures/`: seeded Stratum configs for the toggle
   scenarios (each includes `stratum.json` next to the performance file: before
   [Stratum#159](https://github.com/StratumServer/Stratum/pull/159), shipped in
