@@ -19,7 +19,12 @@ namespace StratumParity.Scenarios;
 /// converging ceiling). Only the Stratum far-platform assertion is exact zero, which is
 /// rate-insensitive: outside the clamped radius the chunk is never a candidate at all
 /// (decompiled: candidacy is a pure grid scan of server-loaded chunks around each
-/// Playing client's chunk, ±range in all three axes).
+/// Playing client's chunk, ±range in all three axes). That chunk is the one the ENGINE
+/// recorded for the player entity (Entity.InChunkIndex3d), not the one its position
+/// implies: it is resynchronised only by a 1000 ms listener, so after a teleport it lags
+/// the position by up to a second, on vanilla and Stratum alike. PlacePlatforms waits for
+/// the two to agree, and AssertAnchorChunkPinned turns any later disagreement into an
+/// invalid-setup failure instead of a bogus "converted" count.
 /// </summary>
 [AtlasWorld(Mods = new[] { "mods/randomtickprobe" })]
 public class RandomTickProbes : AtlasScenarioBase
@@ -30,34 +35,42 @@ public class RandomTickProbes : AtlasScenarioBase
     // runners because the engine's stacked rate factors can slow sampling several-fold.
     internal const int ConversionFloor = 0;
     internal const int ConvergenceTimeoutTicks = 2400;
+    // The engine resynchronises the anchor's chunk about every second (about 14 ticks
+    // observed): generous, so only a stuck anchor can exhaust it.
+    private const int ChunkSyncTimeoutTicks = 150;
     private const int PlatformEdge = 16;
     private const int PlatformLayers = 4;
 
     [AtlasScenario(TimeoutMs = 120_000)]
     public async Task FarPlatform_Should_ConvertOnVanillaAndStayUntouchedOnStratum_When_DefaultsActive()
     {
-        (List<BlockPos> near, List<BlockPos> far) = await PlacePlatforms(World, "rt-anchor");
+        PlatformSet platforms = await PlacePlatforms(World, "rt-anchor");
 
-        await WaitForConversions(World, near, "near");
+        await WaitForConversions(World, platforms, platforms.Near, "near");
 
         if (ServerFlavor.IsStratum)
         {
             // Random ticking is proven live by the near clock; the far column must now
             // stay untouched over a fixed observation window.
             await World.Ticks(450);
-            AssertColumnStillLoaded(World, far[0]);
-            int farConverted = CountConverted(World, far);
+            AssertColumnStillLoaded(World, platforms.Far[0]);
+            // Before the exact-zero assertion: a centre that drifted or fell out of sync
+            // makes the far column a legitimate candidate, which is a broken setup and
+            // must never read as a Stratum clamp failure.
+            AssertAnchorChunkPinned(World, platforms.Anchor, platforms.AnchorChunkIndex,
+                "after the observation window");
+            int farConverted = CountConverted(World, platforms.Far);
             Assert.True(farConverted == 0,
-                $"far platform received random ticks on stratum: {farConverted}/{far.Count} converted");
+                $"far platform received random ticks on stratum: {farConverted}/{platforms.Far.Count} converted");
         }
         else
         {
-            await WaitForConversions(World, far, "far");
+            await WaitForConversions(World, platforms, platforms.Far, "far");
         }
     }
 
     internal static async Task WaitForConversions(
-        Atlas.Api.IWorldSession world, List<BlockPos> platform, string label)
+        Atlas.Api.IWorldSession world, PlatformSet platforms, List<BlockPos> platform, string label)
     {
         try
         {
@@ -68,6 +81,9 @@ public class RandomTickProbes : AtlasScenarioBase
         catch (Exception)
         {
             AssertColumnStillLoaded(world, platform[0]);
+            // A starved wait on a drifted or unsynced centre is a broken setup, not a divergence.
+            AssertAnchorChunkPinned(world, platforms.Anchor, platforms.AnchorChunkIndex,
+                $"while waiting for the {label} platform");
             int converted = CountConverted(world, platform);
             Assert.Fail(
                 $"{label} platform never reached {ConversionFloor + 1} conversions on {ServerFlavor.Name} " +
@@ -75,7 +91,12 @@ public class RandomTickProbes : AtlasScenarioBase
         }
     }
 
-    internal static async Task<(List<BlockPos> Near, List<BlockPos> Far)> PlacePlatforms(
+    /// <summary>The placed platforms plus the anchor and the engine chunk index they were
+    /// derived from, which every later guard compares against.</summary>
+    internal sealed record PlatformSet(
+        Atlas.Api.ITestPlayer Anchor, long AnchorChunkIndex, List<BlockPos> Near, List<BlockPos> Far);
+
+    internal static async Task<PlatformSet> PlacePlatforms(
         Atlas.Api.IWorldSession world, string anchorName)
     {
         // The anchor player centers the 96-block random tick radius on spawn. Since
@@ -85,19 +106,41 @@ public class RandomTickProbes : AtlasScenarioBase
         Atlas.Api.ITestPlayer anchor = await world.JoinPlayer(anchorName);
         anchor.Player.WorldData.DesiredViewDistance = 256;
 
-        // The join scatters players around world spawn (SpawnPlayerRandomlyAround,
-        // roughly 15 blocks), which can shift the anchor's CHUNK by one in any
-        // direction: geometry derived from World.Spawn therefore varied by a full chunk
-        // per run, and every random tick flake of this pack traced back to it (a
-        // "distance 4" column that was really at 3 became a Stratum candidate, one at 5
-        // starved the vanilla wait). Pin the anchor to a fixed position, then derive
-        // everything from its ACTUAL chunk.
+        // The join scatters players around world spawn (SpawnPlayerRandomlyAround, up to
+        // the world's spawnRadius: 50 blocks here; the 15 passed to it is the number of
+        // placement tries, not a radius). Spawn sits on a chunk corner, so the scatter
+        // shifts the anchor's CHUNK (by up to two) on most joins: geometry derived from
+        // World.Spawn therefore varied by whole chunks per run.
+        // Pin the anchor to a fixed position, then derive everything from its ACTUAL chunk.
         await anchor.TeleportTo(world.Spawn);
         await world.Ticks(5);
 
         BlockPos anchorPos = anchor.Position;
         int anchorChunkX = anchorPos.X / 32;
         int anchorChunkZ = anchorPos.Z / 32;
+        long anchorChunkIndex = ChunkIndexOfPosition(world, anchor);
+
+        // Pinning the position is not enough. Random tick candidacy is centred on the
+        // chunk the ENGINE recorded for the player entity (Entity.InChunkIndex3d), and a
+        // teleport only moves the position: the chunk is resynchronised by a 1000 ms
+        // listener, so it keeps pointing at the join-scatter chunk for up to a second.
+        // The "distance 4" far column below is then at distance 3 from that stale centre,
+        // a legitimate Stratum candidate for the few ticks after placement, and one
+        // block occasionally converts (flake: "far platform received random ticks on
+        // stratum: 1/1024 converted"). Vanilla has the same lag, it just does not care.
+        // Place nothing until the engine's chunk matches the position's.
+        try
+        {
+            await world.Until(
+                () => anchor.Entity.InChunkIndex3d == anchorChunkIndex,
+                timeoutTicks: ChunkSyncTimeoutTicks);
+        }
+        catch (Atlas.Api.ScenarioTimeoutException)
+        {
+            Assert.Fail(
+                $"anchor's engine chunk never matched its position within {ChunkSyncTimeoutTicks} ticks of the " +
+                $"teleport on {ServerFlavor.Name} ({DescribeAnchorChunk(world, anchor, anchorChunkIndex)}); setup is invalid");
+        }
 
         // Vanilla gates random ticks itself: only chunks within BlockTickChunkRange
         // (5 chunks by default) of a Playing client are sampled at all (decompiled:
@@ -121,7 +164,37 @@ public class RandomTickProbes : AtlasScenarioBase
             () => world.Api.World.BlockAccessor.GetChunkAtBlockPos(farCorner) != null,
             timeoutTicks: 600);
 
-        return (PlacePlatform(world, nearCorner), PlacePlatform(world, farCorner));
+        // Last check before the platforms exist: the wait above takes ticks too.
+        AssertAnchorChunkPinned(world, anchor, anchorChunkIndex, "before placing the platforms");
+
+        return new PlatformSet(anchor, anchorChunkIndex, PlacePlatform(world, nearCorner), PlacePlatform(world, farCorner));
+    }
+
+    /// <summary>Setup-failure guard, same semantics as
+    /// <see cref="EntityTickingProbes.AssertAnchorStillNear"/>: the platforms' geometry is
+    /// derived from the pinned chunk, so the anchor's position AND the engine's own chunk
+    /// for it (the random tick centre) must both still be that chunk. Anything else means
+    /// the run measured a different setup than the one it was designed for, and must not
+    /// read as a Stratum divergence.</summary>
+    internal static void AssertAnchorChunkPinned(
+        Atlas.Api.IWorldSession world, Atlas.Api.ITestPlayer anchor, long pinnedChunkIndex, string moment)
+    {
+        bool pinned = ChunkIndexOfPosition(world, anchor) == pinnedChunkIndex
+            && anchor.Entity.InChunkIndex3d == pinnedChunkIndex;
+        Assert.True(pinned,
+            $"anchor chunk not pinned {moment} on {ServerFlavor.Name} " +
+            $"({DescribeAnchorChunk(world, anchor, pinnedChunkIndex)}); setup is invalid");
+    }
+
+    private static string DescribeAnchorChunk(
+        Atlas.Api.IWorldSession world, Atlas.Api.ITestPlayer anchor, long pinnedChunkIndex) =>
+        $"pinned chunk index {pinnedChunkIndex}, chunk index of its position {ChunkIndexOfPosition(world, anchor)}, " +
+        $"engine chunk index (random tick centre) {anchor.Entity.InChunkIndex3d}, position {anchor.Position}";
+
+    private static long ChunkIndexOfPosition(Atlas.Api.IWorldSession world, Atlas.Api.ITestPlayer anchor)
+    {
+        BlockPos pos = anchor.Position;
+        return world.Api.WorldManager.ChunkIndex3D(pos.X / 32, pos.Y / 32, pos.Z / 32);
     }
 
     private static List<BlockPos> PlacePlatform(Atlas.Api.IWorldSession world, BlockPos corner)

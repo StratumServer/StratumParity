@@ -1,5 +1,4 @@
 using Atlas.XUnit;
-using Vintagestory.API.MathTools;
 using Xunit;
 
 namespace StratumParity.Scenarios;
@@ -19,12 +18,15 @@ public class RandomTickDisabledScenarios : AtlasScenarioBase
     [AtlasScenario(TimeoutMs = 120_000)]
     public async Task FarPlatform_Should_Convert_When_LimitDisabledByConfig()
     {
-        (List<BlockPos> near, List<BlockPos> far) =
+        RandomTickProbes.PlatformSet platforms =
             await RandomTickProbes.PlacePlatforms(World, "rt-anchor2");
 
         // Both platforms must convert; converging waits absorb the engine's asynchronous
         // chunk bookkeeping (see RandomTickProbes).
-        await RandomTickProbes.WaitForConversions(World, near, "near");
-        await RandomTickProbes.WaitForConversions(World, far, "far");
+        await RandomTickProbes.WaitForConversions(World, platforms, platforms.Near, "near");
+        await RandomTickProbes.WaitForConversions(World, platforms, platforms.Far, "far");
+        // On Stratum a far conversion proves the toggle only if the centre never moved.
+        RandomTickProbes.AssertAnchorChunkPinned(World, platforms.Anchor, platforms.AnchorChunkIndex,
+            "after the far platform converted");
     }
 }
