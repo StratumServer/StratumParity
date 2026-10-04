@@ -72,7 +72,7 @@ namespace StratumParityProbe
     /// andesite, which counts how many handlers ran. On later ticks the block audits the
     /// positions it kept: one whose coordinates changed since the handler returned means the
     /// engine recycled the object, and the block at the position it was originally handed out
-    /// for turns to granite. Ported from Stratum's tests/StratumScenarios (#353).
+    /// for turns to granite. Ported from Stratum's tests/StratumScenarios (StratumServer/Stratum#353).
     /// </summary>
     public class RandomTickPositionProbeBlock : Block
     {

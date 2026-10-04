@@ -16,7 +16,7 @@ namespace StratumParity.Scenarios;
 /// Random tick position ownership: a handler may keep the BlockPos it receives (vanilla
 /// queues a private copy per sampled tick). The position probe keeps every position and
 /// audits them on later ticks, so a rewrite shows up as granite in the world (the check
-/// is a port of Stratum's own scenario for #353).
+/// is a port of Stratum's own scenario for StratumServer/Stratum#353).
 ///
 /// Neighbour notifications: the engine delivers OnNeighbourBlockChange from a queue that
 /// the 100 ms block simulation listener drains, at most 500 positions per pass
@@ -66,10 +66,10 @@ public class BlockTickContractScenarios : AtlasScenarioBase
     private const int SourceLayers = 10;
     private const int BulkEdge = 10;
 
-    // Fixed upstream in #353 and in neither pinned lane yet: the position pool of the
+    // Fixed upstream in StratumServer/Stratum#353 and in neither pinned lane yet: the position pool of the
     // random tick pass hands out one object that a later pass rewrites in place.
     private static readonly KnownDivergence KeptPositionRewrite =
-        new("#353", StratumBuild.Stable2, StratumBuild.Indev1);
+        new("StratumServer/Stratum#353", StratumBuild.Stable2, StratumBuild.Indev1);
 
     private readonly ITestOutputHelper output;
 

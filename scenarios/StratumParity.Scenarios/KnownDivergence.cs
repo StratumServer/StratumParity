@@ -17,7 +17,7 @@ public static class StratumBuild
 /// it. A bug-first scenario declares one as a private static readonly and branches on
 /// <see cref="Applies"/>:
 /// <code>
-/// private static readonly KnownDivergence Rewrite = new("#353", StratumBuild.Stable2, StratumBuild.Indev1);
+/// private static readonly KnownDivergence Rewrite = new("StratumServer/Stratum#353", StratumBuild.Stable2, StratumBuild.Indev1);
 /// ...
 /// if (Rewrite.Applies) Assert.True(rewritten >= 1, $"{Rewrite.Tag}: bug shape gone, drop the exemption");
 /// else Assert.True(rewritten == 0, $"... on {ServerFlavor.Name}");
