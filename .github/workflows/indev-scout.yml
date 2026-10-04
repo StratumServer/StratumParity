@@ -63,6 +63,10 @@ jobs:
       fail-fast: false
       matrix:
         flavor: [vanilla, stratum-indev]
+        # One leg per flavor and shard, "<index>of<count>": same split as the Parity
+        # workflow (scripts/shard_filter.py, a class goes to crc32(class name) % count),
+        # and the same rule for changing it: edit this list, bumping every "of<count>".
+        shard: [1of3, 2of3, 3of3]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -121,9 +125,19 @@ jobs:
           PARITY_EXPECTED_FLAVOR: ${{ matrix.flavor }}
         run: |
           export VINTAGE_STORY="$HOME/install/${{ matrix.flavor }}"
+          project=scenarios/StratumParity.Scenarios
+          trx="${{ matrix.flavor }}-${{ matrix.shard }}.trx"
+          # Build once; the shard script lists the tests from the built assembly and the
+          # suite then runs on that same build. No --skip-extended: the scout is one of
+          # the two lanes that run the extended tier ([Trait("Category", "Extended")],
+          # nothing is tagged yet), the Parity weekly sweep being the other.
+          dotnet build "$project" -c Release
+          shard_args=(--shard "${{ matrix.shard }}" --project "$project")
+          filter="$(python3 scripts/shard_filter.py "${shard_args[@]}")"
+          echo "shard filter: ${filter}"
           run_suite() {
-            dotnet test scenarios/StratumParity.Scenarios -c Release \
-              --logger "trx;LogFileName=${{ matrix.flavor }}.trx" \
+            dotnet test "$project" -c Release --no-build --filter "${filter}" \
+              --logger "trx;LogFileName=${trx}" \
               --results-directory results 2>&1 | tee test-output.log
             return "${PIPESTATUS[0]}"
           }
@@ -139,12 +153,15 @@ jobs:
               exit 1
             fi
           fi
+          # Only reached when the shard's suite passed: its report must hold exactly the
+          # tests it was assigned, so a filter that matched less cannot lose coverage quietly.
+          python3 scripts/shard_filter.py "${shard_args[@]}" --verify "results/${trx}"
 
       - name: Upload TRX
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: trx-${{ matrix.flavor }}
+          name: trx-${{ matrix.flavor }}-${{ matrix.shard }}
           path: results/*.trx
           # Re-run attempts share the run's artifact namespace; without this, a retried
           # leg 409s on the upload and can never go green.
@@ -154,7 +171,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: server-logs-${{ matrix.flavor }}
+          name: server-logs-${{ matrix.flavor }}-${{ matrix.shard }}
           path: /tmp/atlas/*/Logs/*.log
           if-no-files-found: ignore
           overwrite: true
@@ -176,7 +193,13 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: results
+          pattern: trx-*
           merge-multiple: true
+
+      - name: Merge shard reports
+        # One results/<flavor>.trx per flavor out of its shards' reports; a missing,
+        # empty or overlapping shard fails here, naming it.
+        run: python3 scripts/merge_trx.py results vanilla stratum-indev
 
       - name: Diff outcomes
         # Same gate as the Parity workflow: render_summary.py exits 1 on any
@@ -224,6 +247,7 @@ jobs:
         continue-on-error: true
         with:
           path: results
+          pattern: trx-*
           merge-multiple: true
 
       - name: Append this scout run and publish
@@ -237,6 +261,11 @@ jobs:
           SCOUT_TAG: ${{ needs.resolve.outputs.tag }}
           SCOUT_SHA: ${{ needs.resolve.outputs.sha }}
         run: |
+          # One results/<flavor>.trx per flavor out of its shards' reports. --lenient: a
+          # flavor with a shard that never reported gets no merged file, which the
+          # --missing-ok below records as an empty side (red entry) instead of a gap that
+          # would pass for the whole flavor.
+          python3 scripts/merge_trx.py --lenient results vanilla stratum-indev
           if [ ! -f results/vanilla.trx ] && [ ! -f results/stratum-indev.trx ]; then
             echo "::warning::no TRX at all (run died before testing); nothing to record"
             exit 0
