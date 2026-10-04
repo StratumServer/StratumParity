@@ -33,10 +33,10 @@ public sealed record OreDigest(int ChunkX, int ChunkZ, string Hash, int Count, s
     public override string ToString() => $"({ChunkX},{ChunkZ}) ores={Count} hash={Hash} perOre={PerOre}";
 }
 
-/// <summary>The rivulet sources of one chunk column: SHA-256 over (x, y, z, fluid code) of each.</summary>
-public sealed record RivuletDigest(int ChunkX, int ChunkZ, string Hash, int Count)
+/// <summary>One water source that GenRivulets left in the rock, at block coordinates.</summary>
+public readonly record struct RivuletCell(int X, int Y, int Z)
 {
-    public override string ToString() => $"({ChunkX},{ChunkZ}) rivulets={Count} hash={Hash}";
+    public override string ToString() => $"({X},{Y},{Z})";
 }
 
 /// <summary>
@@ -61,8 +61,10 @@ public sealed record RivuletDigest(int ChunkX, int ChunkZ, string Hash, int Coun
 /// in two processes. That is not true of every area, nor of the other digests. Elsewhere the first
 /// standard world that a test process generates gets different ore, cracked rock, saltpeter and
 /// stalagmite positions from every later one (same seed, same code; a superflat world booted before
-/// does not count), vanilla rivulets move in a few columns between boots, and vegetation differs on
-/// every boot. An <see cref="Ores"/> or <see cref="Rivulets"/> golden taken from vanilla therefore
+/// does not count), vegetation differs on every boot, and the fluid blocks of a loaded column move within
+/// a few ticks of Done (the rivulet cells of a loaded rectangle differed from boot to boot, from 2 to 24 in
+/// the same 20x20 columns, while the cells of a peeked column were identical on 3 boots: see
+/// <see cref="RivuletSources"/>). An <see cref="Ores"/> golden taken from vanilla therefore
 /// depends on how many standard worlds the process generated before the class: check a candidate on
 /// several boots before pinning it, as the golden rectangle was.
 /// </summary>
@@ -71,8 +73,10 @@ public static class WorldgenDigest
     public const int ChunkSize = 32;
     private const int ChunkVolume = ChunkSize * ChunkSize * ChunkSize;
 
+    private const string RivuletWater = "water-still-7";
+
     // Blocks only a deposit can place and whose host rock is not in the code.
-    private static readonly string[] DepositRockPaths =
+    internal static readonly string[] DepositRockPaths =
     {
         "rock-whitemarble", "rock-redmarble", "rock-greenmarble", "rock-obsidian", "rock-travertine", "rock-halite",
     };
@@ -162,15 +166,18 @@ public static class WorldgenDigest
     }
 
     /// <summary>Every block whose code starts with ore- in one column, scanned from the bottom chunk up.</summary>
-    public static OreDigest Ores(IWorldSession world, int cx, int cz)
+    public static OreDigest Ores(IWorldSession world, int cx, int cz) => Ores(world, Column(world, cx, cz), cx, cz);
+
+    /// <summary>Ore blocks of the given chunks (bottom up), for example a column peeked to a pass with
+    /// <see cref="WorldgenPeek.Column"/>: deposits are placed at TerrainFeatures, so a Terrain peek has none.</summary>
+    public static OreDigest Ores(IWorldSession world, IReadOnlyList<IWorldChunk> chunks, int cx, int cz)
     {
-        IWorldChunk[] chunks = Column(world, cx, cz);
         BlockCodes codes = new(world);
         var perOre = new SortedDictionary<string, int>(StringComparer.Ordinal);
 
         using var hash = new Digester();
         int count = 0;
-        for (int cy = 0; cy < chunks.Length; cy++)
+        for (int cy = 0; cy < chunks.Count; cy++)
         {
             IChunkBlocks data = chunks[cy].Data;
             for (int index = 0; index < ChunkVolume; index++)
@@ -195,61 +202,55 @@ public static class WorldgenDigest
     }
 
     /// <summary>
-    /// Single fluid blocks walled into the rock, which is what GenRivulets leaves: a fluid layer
-    /// block over an empty solid layer with at least four fully solid neighbours and at least one
-    /// air neighbour (oceans, lakes and cave pools have fluid or open neighbours and do not
-    /// match). Reads neighbours through the block accessor, so the column's neighbours must be
-    /// loaded too.
+    /// The water sources that GenRivulets left in the given chunks (bottom up), by its own shape test: a water-still-7 fluid over
+    /// an empty solid layer with exactly five neighbours of stone material and one of air, read from the solid layer of the
+    /// column (the test of tryGenRivulet, which cannot see past the column: only local x and z 1 to 30 are scanned, as GenRivulets
+    /// only picks those). Meant for a column peeked up to the Vegetation pass, where GenRivulets has run and no block update has:
+    /// in a loaded column the fluid simulation moves water between cells within a few ticks of Done, so the cells of a loaded
+    /// column differ from boot to boot. Only water: lava rivulets draw after the mountain side rivulets, whose count depends on the
+    /// random state the previously generated column left behind, so their cells depend on the order in which columns were generated.
+    /// Rapid water (the mountain side kind) is left out for the same reason. In x, z, y order.
     /// </summary>
-    public static RivuletDigest Rivulets(IWorldSession world, int cx, int cz)
+    public static List<RivuletCell> RivuletSources(IWorldSession world, IReadOnlyList<IWorldChunk> chunks, int cx, int cz)
     {
-        IWorldChunk[] chunks = Column(world, cx, cz);
-        IBlockAccessor accessor = world.Api.World.BlockAccessor;
-        BlockCodes codes = new(world);
-        var pos = new BlockPos(0);
-        var neighbour = new BlockPos(0);
-
-        using var hash = new Digester();
-        int count = 0;
-        for (int cy = 0; cy < chunks.Length; cy++)
+        IList<Block> blocks = world.Api.World.Blocks;
+        int maxY = chunks.Count * ChunkSize - 1;
+        var found = new List<RivuletCell>();
+        for (int lx = 1; lx < ChunkSize - 1; lx++)
         {
-            IChunkBlocks data = chunks[cy].Data;
-            for (int index = 0; index < ChunkVolume; index++)
+            for (int lz = 1; lz < ChunkSize - 1; lz++)
             {
-                int fluid = data.GetFluid(index);
-                if (fluid == 0 || data.GetBlockId(index, BlockLayersAccess.Solid) != 0)
+                for (int y = 1; y < maxY; y++)
                 {
-                    continue;
-                }
+                    int index = (y % ChunkSize * ChunkSize + lz) * ChunkSize + lx;
+                    IChunkBlocks data = chunks[y / ChunkSize].Data;
+                    int fluid = data.GetFluid(index);
+                    if (fluid == 0 || data.GetBlockId(index, BlockLayersAccess.Solid) != 0 || blocks[fluid].Code.Path != RivuletWater)
+                    {
+                        continue;
+                    }
 
-                int x = cx * ChunkSize + index % ChunkSize;
-                int y = cy * ChunkSize + index / (ChunkSize * ChunkSize);
-                int z = cz * ChunkSize + index / ChunkSize % ChunkSize;
-                pos.Set(x, y, z);
-                int solid = 0;
-                int air = 0;
-                foreach (BlockFacing face in BlockFacing.ALLFACES)
-                {
-                    neighbour.Set(pos.X + face.Normali.X, pos.Y + face.Normali.Y, pos.Z + face.Normali.Z);
-                    Block block = accessor.GetBlock(neighbour);
-                    solid += block.SideSolid.All ? 1 : 0;
-                    air += block.BlockMaterial == EnumBlockMaterial.Air ? 1 : 0;
-                }
+                    int stone = 0;
+                    int air = 0;
+                    foreach (BlockFacing face in BlockFacing.ALLFACES)
+                    {
+                        int ny = y + face.Normali.Y;
+                        int id = chunks[ny / ChunkSize].Data.GetBlockId(
+                            (ny % ChunkSize * ChunkSize + lz + face.Normali.Z) * ChunkSize + lx + face.Normali.X, BlockLayersAccess.Solid);
+                        EnumBlockMaterial material = blocks[id].BlockMaterial;
+                        stone += material == EnumBlockMaterial.Stone ? 1 : 0;
+                        air += material == EnumBlockMaterial.Air ? 1 : 0;
+                    }
 
-                if (solid < 4 || air < 1)
-                {
-                    continue;
+                    if (stone == 5 && air == 1)
+                    {
+                        found.Add(new RivuletCell(cx * ChunkSize + lx, y, cz * ChunkSize + lz));
+                    }
                 }
-
-                hash.AddInt(x);
-                hash.AddInt(y);
-                hash.AddInt(z);
-                hash.AddCode(codes.Bytes(fluid));
-                count++;
             }
         }
 
-        return new RivuletDigest(cx, cz, hash.Finish(), count);
+        return found;
     }
 
     /// <summary>
