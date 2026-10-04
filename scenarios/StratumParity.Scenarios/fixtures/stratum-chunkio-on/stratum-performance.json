@@ -1,0 +1,7 @@
+{
+  "ChunkIo": {
+    "Enabled": true,
+    "WorkerThreads": 4,
+    "MinChunkYLevelsForParallel": 2
+  }
+}
