@@ -49,6 +49,26 @@ public class CommandParityScenarios : AtlasScenarioBase
     }
 
     [AtlasScenario]
+    public async Task StratumSetting_Should_RestorePreviousValue_When_HandleDisposed()
+    {
+        // Guards the toggle helper the runtime-toggle scenarios build on: a changed reply
+        // format of /stratum get or set would otherwise surface as unrelated failures there.
+        const string Key = "Performance.Physics.MaxActivationsPerTick";
+        string? before = await StratumSetting.Get(World, Key);
+        Assert.Equal(ServerFlavor.IsStratum, before != null);
+
+        await using (await StratumSetting.Set(World, Key, "7"))
+        {
+            if (ServerFlavor.IsStratum)
+            {
+                Assert.Equal("7", await StratumSetting.Get(World, Key));
+            }
+        }
+
+        Assert.Equal(before, await StratumSetting.Get(World, Key));
+    }
+
+    [AtlasScenario]
     public async Task HomeCommands_Should_ExistOnlyOnStratum_When_Executed()
     {
         // Registration is the contract under test, not successful execution: the console

@@ -23,9 +23,11 @@ a Stratum install, and the results must line up. Scenarios fall into two familie
 
 ## Coverage
 
-Twenty scenarios in ten classes: parity scenarios, probes, and one informational perf
-measurement, green on both flavors against the pinned pair, re-run by CI on every PR and
-weekly against the pinned Stratum release. A separate daily **indev scout**
+Thirty-nine scenarios in fifteen classes (plus three unit tests of the known-divergence
+policy): parity scenarios, probes, and one informational perf measurement, green on both
+flavors against the pinned pair (six confirmed Stratum bugs are pinned as known
+divergences, listed below), re-run by CI on every PR and weekly against the pinned Stratum
+release. A separate daily **indev scout**
 workflow resolves the latest Stratum pre-release and runs the same suite against it:
 non-blocking early warning for the next stable. Scout runs are recorded in their own
 history and shown in the dashboard's Builds section, never mixed into the stable trends.
@@ -38,7 +40,27 @@ history and shown in the dashboard's Builds section, never mixed into the stable
 | Block tick listeners | `BlockTickListenerProbes`, `BlockTickListenerDisabledScenarios` | Far listeners are skipped entirely on Stratum (128-block radius), force-loaded columns stay exempt, toggle restores parity |
 | Chunk persistence | `ChunkPersistenceScenarios` | Blocks + chunk moddata survive save/unload/reload cycles identically through Stratum's incremental autosave (its opt-in pooled chunk reads are off by default and not exercised here); sunlight and block light around a torch are re-read after the reload |
 | Random ticks | `RandomTickProbes`, `RandomTickDisabledScenarios` | Vanilla gates random ticks to 5 chunks around Playing clients; Stratum clamps to 3; probed at chunk distance 4 via a staged source mod whose block converts on every random tick |
+| Climate queries | `ClimateQueryScenarios` | `GetClimateAt` full modes return independent objects, the int overload ignores the previous query, the temperature modes give stable values per column and match a fresh computation; Stratum diverges on all four (known divergences below). Probe: `AllLoadedMapRegions` is a fresh copy per read on vanilla and one shared snapshot per tick on Stratum, which caches it on purpose (Stratum commit `035a42d`; a contract difference with no practical effect, not reported) |
+| Block simulation contracts | `BlockTickContractScenarios` | A handler that keeps its random tick position never sees it rewritten (a port of Stratum's own check for StratumServer/Stratum#353), a neighbour gets exactly one `OnNeighbourBlockChange` per change, 2000 changes in one tick all drain in passes of at most 500, a bulk accessor commit notifies every modified block; read through counter blocks of the staged probe mod |
+| Chiseled blocks | `MicroblockEditScenarios` | Two blocks open for editing at once keep their own shapes (the WorldEdit chisel brush path); a rebuild from cuboids preserves the voxel set, the volume and the face solidity for stairs, checkerboard, single-voxel and tunnel shapes, with expectations derived in the test |
+| Pathfinding | `PathfindingScenarios` | Probe: the nodes of a found path survive the next search on vanilla and are rewritten by it on Stratum, which pools its A* nodes on purpose (Stratum commit `ad381da`: callers are expected to convert a found path to waypoints at once, not a bug). Parity: a synchronous search follows the only corridor of a walled maze and returns no path to an unreachable target; a raccoon walks the maze through the asynchronous workers without getting stuck |
+| Physics activation queue | `PhysicsActivationQueueScenarios` | 120 entities spawned and 70 despawned in one step leave no physics tickable behind and none of the despawned ids in the observer's server-side tracked set (what the client keeps of them is logged on the affected builds, asserted elsewhere); with the activation cap switched off through `/stratum set` there is no leak |
 | Tick cost (perf) | `TickCostProbes` | Server work-ms per tick under a fixed active-entity load, emitted to the dashboard as a trend; informational, not a pass/fail gate (see below) |
+
+### Known divergences
+
+Six Stratum behaviours that differ from vanilla are pinned rather than hidden. On the two
+builds where each was confirmed (1.22.7-stratum.2 and 1.22.7-stratum.2-indev.1) the Stratum
+side of the scenario asserts the observed bug shape, so a fix turns it red and the entry is
+deleted; vanilla and every other build stay strict parity. Each one is an issue on
+StratumServer/Stratum.
+
+- [StratumServer/Stratum#360](https://github.com/StratumServer/Stratum/issues/360) (`ClimateQueryScenarios`, two scenarios): the full `GetClimateAt` modes return one shared per-thread object that a later query overwrites, and the int overload returns it with stale world gen fields from the previous full query.
+- [StratumServer/Stratum#361](https://github.com/StratumServer/Stratum/issues/361) (`ClimateQueryScenarios`): on a cache miss the temperature and rainfall mode returns the stored cache entry, which the `OnGetClimate` handlers then rewrite, so the second query at the same position differs.
+- [StratumServer/Stratum#362](https://github.com/StratumServer/Stratum/issues/362) (`ClimateQueryScenarios`): the temperature only cache key is chunk granular and wraps every 1024 chunks, so every column of a chunk gets the first queried column's values and a chunk 1024 chunks away shares the entry.
+- [StratumServer/Stratum#353](https://github.com/StratumServer/Stratum/pull/353) (`BlockTickContractScenarios`): the random tick position pool hands a handler an object that a later pass rewrites in place; fixed upstream, in neither build yet.
+- [StratumServer/Stratum#356](https://github.com/StratumServer/Stratum/issues/356) (`MicroblockEditScenarios`): `BeginEdit` hands every block on the game thread the same voxel and material grids, so editing a second block rebuilds the first from its shape.
+- [StratumServer/Stratum#358](https://github.com/StratumServer/Stratum/issues/358) (`PhysicsActivationQueueScenarios`, two scenarios): with the default activation cap, an entity that despawns while its physics add is still deferred leaves a permanent tickable and stays in the observers' server-side tracked set; in two of four full-suite legs the client also kept 20 of the 70 despawned entities.
 
 One scenario is a perf measurement rather than a parity check: `TickCostProbes` records the
 server's per-tick work time under a fixed load of active entities and emits it to the dashboard.
@@ -110,8 +132,9 @@ Atlas 0.11.
 - `scenarios/StratumParity.Scenarios/`: the xUnit scenario project (consumes the
   `Pixnop.Atlas.XUnit` NuGet package)
 - `scenarios/StratumParity.Scenarios/mods/randomtickprobe/`: test-only source mod
-  (compiled by the game's ModLoader) whose block turns to granite on every random tick,
-  so random tick coverage becomes countable world state
+  (compiled by the game's ModLoader): probe blocks that turn to granite or andesite on a
+  random tick, so random tick coverage becomes countable world state, and counter blocks
+  that log neighbour updates and sampled random ticks for the scenarios to read
 - `scenarios/StratumParity.Scenarios/fixtures/`: seeded Stratum configs for the toggle
   scenarios (each includes `stratum.json` next to the performance file: before
   [Stratum#159](https://github.com/StratumServer/Stratum/pull/159), shipped in

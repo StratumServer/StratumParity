@@ -41,6 +41,24 @@ public class SmokeParityScenarios : AtlasScenarioBase
     }
 
     [AtlasScenario]
+    public Task LoadedServer_Should_ReportBuildVersion_When_ItIsStratum()
+    {
+        // KnownDivergence matches this string exactly, so it must be readable on every
+        // Stratum build the suite runs against and absent on vanilla.
+        output.WriteLine($"flavor={ServerFlavor.Name} version={ServerFlavor.Version ?? "none"}");
+        if (ServerFlavor.IsStratum)
+        {
+            Assert.Contains("-stratum.", ServerFlavor.Version);
+        }
+        else
+        {
+            Assert.Null(ServerFlavor.Version);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    [AtlasScenario]
     public async Task Server_Should_BootAndAdvanceClock_When_Ticked()
     {
         // The game calendar pauses on an empty server (same on both flavors), so the boot
