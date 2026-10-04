@@ -171,6 +171,12 @@ scripts without a server, and the compare job runs it.
   (compiled by the game's ModLoader): probe blocks that turn to granite or andesite on a
   random tick, so random tick coverage becomes countable world state, and counter blocks
   that log neighbour updates and sampled random ticks for the scenarios to read
+- `scenarios/StratumParity.Scenarios/mods/worldgenprobe/`: test-only source mod with a
+  handler at each worldgen pass of the standard world, recording in chunk moddata what the
+  handler saw (pass, the column's own pass, rock and air counts, how many neighbours were ready)
+- `scenarios/StratumParity.Scenarios/mods/persistprobe/`: test-only source mod that appends a
+  boot record to the savegame and to the chunk, map chunk and map region of the world centre
+  column at every boot, plus one marker block per boot, for the restart scenarios
 - `scenarios/StratumParity.Scenarios/fixtures/`: seeded Stratum configs for the toggle
   scenarios (each includes `stratum.json` next to the performance file: before
   [Stratum#159](https://github.com/StratumServer/Stratum/pull/159), shipped in
