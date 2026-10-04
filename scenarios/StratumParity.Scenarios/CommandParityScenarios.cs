@@ -1,5 +1,6 @@
 using Atlas.Api;
 using Atlas.XUnit;
+using Vintagestory.API.Common;
 using Xunit;
 
 namespace StratumParity.Scenarios;
@@ -18,7 +19,7 @@ public class CommandParityScenarios : AtlasScenarioBase
         double before = World.Calendar.TotalHours;
         CommandResult result = await World.ExecuteCommand("/time add 2");
 
-        Assert.True(result.Ok, $"/time add failed on {ServerFlavor.Name}: {result.Message}");
+        Assert.True(result.Ok, $"/time add failed on {ServerFlavor.Name} ({result.Status}): {result.Message}");
         await World.Until(() => World.Calendar.TotalHours > before, timeoutTicks: 100);
     }
 
@@ -28,7 +29,8 @@ public class CommandParityScenarios : AtlasScenarioBase
         CommandResult result = await World.ExecuteCommand("/nosuchcommandanywhere");
 
         Assert.False(result.Ok);
-        Assert.Equal("nosuchcommand", result.Raw.ErrorCode);
+        Assert.Equal(EnumCommandStatus.NoSuchCommand, result.Status);
+        Assert.Equal("nosuchcommand", result.ErrorCode);
     }
 
     [AtlasScenario]
@@ -38,11 +40,11 @@ public class CommandParityScenarios : AtlasScenarioBase
 
         if (ServerFlavor.IsStratum)
         {
-            Assert.NotEqual("nosuchcommand", result.Raw.ErrorCode);
+            Assert.NotEqual(EnumCommandStatus.NoSuchCommand, result.Status);
         }
         else
         {
-            Assert.Equal("nosuchcommand", result.Raw.ErrorCode);
+            Assert.Equal(EnumCommandStatus.NoSuchCommand, result.Status);
         }
     }
 
@@ -56,11 +58,11 @@ public class CommandParityScenarios : AtlasScenarioBase
 
         if (ServerFlavor.IsStratum)
         {
-            Assert.NotEqual("nosuchcommand", result.Raw.ErrorCode);
+            Assert.NotEqual(EnumCommandStatus.NoSuchCommand, result.Status);
         }
         else
         {
-            Assert.Equal("nosuchcommand", result.Raw.ErrorCode);
+            Assert.Equal(EnumCommandStatus.NoSuchCommand, result.Status);
         }
     }
 }

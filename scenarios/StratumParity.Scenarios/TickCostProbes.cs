@@ -18,8 +18,8 @@ namespace StratumParity.Scenarios;
 /// resolution, so an absolute or tight-ratio assertion cannot be made reliable. Instead each run
 /// records a number, the dashboard plots the two trend lines, and a human reads regressions. The
 /// in-code assertions are purely structural (finite numbers, the server actually ticked, load did
-/// not make ticks cheaper). See TickCostReader for the metric, and the README perf section for the
-/// full caveats.
+/// not make ticks cheaper). The metric is documented on MeasureMedian, and the README perf section
+/// has the full caveats.
 ///
 /// The dummies sit inside the near band (&lt; 32 blocks): both flavors tick every dummy every tick,
 /// so ms/tick measures the CORE tick loop and is comparable across flavors. It captures Stratum's
@@ -95,24 +95,18 @@ public class TickCostProbes : AtlasScenarioBase
         await World.Ticks(WarmupTicks);
     }
 
-    /// <summary>Median avg-ms/tick across Windows windows of TicksPerWindow each. Each window is
-    /// longer than the ~2s bucket rotation, so a complete previous bucket always exists; the median
-    /// across windows rejects a window that caught a GC pause.</summary>
+    /// <summary>Median, across Windows windows of TicksPerWindow passes each, of the mean per-pass
+    /// busy time: <c>PassTimingStats.MeanMs</c> from <c>MeasureTicks</c>, which is the engine's own
+    /// <c>tickTimeTotal / ticksTotal</c> taken over exactly that window's passes. Each pass is the
+    /// engine's whole-millisecond busy time (pacing sleep excluded), so the mean is a trend value,
+    /// not a sub-millisecond timing. The median across windows rejects one that caught a GC pause.</summary>
     private async Task<double> MeasureMedian()
     {
         var samples = new List<double>(Windows);
         for (int w = 0; w < Windows; w++)
         {
-            await World.Ticks(TicksPerWindow);
-            double avg = TickCostReader.AverageMsPerTick(World);
-            if (double.IsFinite(avg))
-            {
-                samples.Add(avg);
-            }
-        }
-        if (samples.Count == 0)
-        {
-            return double.NaN;
+            TickMeasurement window = await World.MeasureTicks(TicksPerWindow);
+            samples.Add(window.BusyTime.MeanMs);
         }
         samples.Sort();
         return samples[samples.Count / 2];

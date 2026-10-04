@@ -51,7 +51,9 @@ the two trend lines on the dashboard are read by a human.
 Locally it shows Stratum's core tick loop at roughly a third of vanilla's cost (its per-tick
 allocation and LINQ reductions). Caveats: headless single-process superflat world, not a
 realistic multiplayer benchmark; numbers near the 1ms floor are trend, not value; the load size
-is a runner-speed-tuned constant. See `scenarios/StratumParity.Scenarios/TickCostReader.cs`.
+is a runner-speed-tuned constant. The figure is the mean per-pass busy time that Atlas's
+`MeasureTicks` reports (`PassTimingStats.MeanMs`), median of five 90-tick windows; see
+`scenarios/StratumParity.Scenarios/TickCostProbes.cs`.
 
 Field results so far: Stratum's chunk persistence is byte-faithful, its throttles behave
 as documented and their toggles genuinely restore vanilla behavior, and no behavioral
@@ -86,7 +88,7 @@ VINTAGE_STORY=/path/to/stratum-server dotnet test -c Release
 ```
 
 Both installs plus a comparison report (requires the Atlas CLI at the same version as the
-package the project references: `dotnet tool install -g Pixnop.Atlas.Cli --version 0.15.1`):
+package the project references: `dotnet tool install -g Pixnop.Atlas.Cli --version 0.16.0`):
 
 ```bash
 scripts/run-parity.sh /path/to/vanilla-server /path/to/stratum-server
@@ -127,6 +129,6 @@ Atlas 0.11.
 
 ## Versions
 
-Pinned expectations: Vintage Story 1.22.7, Stratum v1.22.7-stratum.2, Atlas 0.15.1.
+Pinned expectations: Vintage Story 1.22.7, Stratum v1.22.7-stratum.2, Atlas 0.16.0.
 Stratum moves fast (releases every few days); when a scenario starts failing on a new
 Stratum release, that is the suite doing its job.

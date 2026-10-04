@@ -15,7 +15,7 @@ env:
   # Exact pin, so it is both what `dotnet tool install` fetches and what the history
   # records as the Atlas that produced a run. The publish job needs the value on red
   # runs too, where the compare job that installs the tool has already failed.
-  ATLAS_VERSION: '0.15.1'
+  ATLAS_VERSION: '0.16.0'
 
 jobs:
   parity:

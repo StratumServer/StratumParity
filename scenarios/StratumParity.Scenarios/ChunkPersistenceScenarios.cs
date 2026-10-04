@@ -137,7 +137,7 @@ public class ChunkPersistenceScenarios : AtlasScenarioBase
     private async Task SaveUnloadReload(BlockPos anchor)
     {
         CommandResult save = await World.ExecuteCommand("/autosavenow");
-        Assert.True(save.Ok, $"/autosavenow failed on {ServerFlavor.Name}: {save.Message}");
+        Assert.True(save.Ok, $"/autosavenow failed on {ServerFlavor.Name} ({save.Status}): {save.Message}");
         // Part of the chunk flush happens off-thread after the command returns, and
         // UnloadChunkColumn never persists: unloading too early discards the in-memory
         // chunk before it reaches the database. Give the flush time to settle.
