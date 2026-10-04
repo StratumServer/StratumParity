@@ -1,0 +1,6 @@
+{
+  "ConfigVersion": 4,
+  "Worldgen": {
+    "SplitTerrainPass": false
+  }
+}
