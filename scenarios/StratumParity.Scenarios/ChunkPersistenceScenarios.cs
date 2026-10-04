@@ -1,6 +1,4 @@
-using Atlas.Api;
 using Atlas.XUnit;
-using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Xunit;
 
@@ -13,33 +11,29 @@ namespace StratumParity.Scenarios;
 /// reuse) and the chunk read path (pooled reads). A silent divergence here would be the
 /// worst possible Stratum regression, so every assertion is unconditional.
 ///
-/// Two synchronization lessons are baked in. Writes are confirmed by reading them back
-/// (a column still loading swallows writes silently), and a reload is only considered
-/// complete once the probe moddata is visible again: moddata can only come from the
-/// database, so its presence proves the stored column was applied rather than a fresh
-/// or regenerated one.
+/// The steps (load, confirmed pattern, save, unload, reload) live in <see cref="ChunkPersistence"/>
+/// so the other persistence classes reuse them; its summary explains the two synchronization
+/// lessons they embody. The explicit save is World.SaveNow.
 /// </summary>
 public class ChunkPersistenceScenarios : AtlasScenarioBase
 {
-    private const string ModdataKey = "stratumparity:probe";
-
     [AtlasScenario(TimeoutMs = 120_000)]
     public async Task ModifiedColumn_Should_SurviveUnloadReload_When_SavedBeforeUnload()
     {
         BlockPos anchor = World.Spawn.AddCopy(200, 1, 0);
-        await LoadColumn(anchor);
+        await ChunkPersistence.LoadColumn(World, anchor);
 
-        List<BlockPos> pattern = await WritePatternConfirmed(anchor, saltForCycle: 0);
+        List<BlockPos> pattern = await ChunkPersistence.WritePatternConfirmed(World, anchor, saltForCycle: 0);
         byte[] payload = { 0xA7, 0x01, 0x22, 0x03, 0x15 };
-        SetColumnModdata(anchor, payload);
+        ChunkPersistence.SetColumnModdata(World, anchor, payload);
 
-        await SaveUnloadReload(anchor);
+        await ChunkPersistence.SaveUnloadReload(World, anchor);
 
         foreach (BlockPos pos in pattern)
         {
             Assert.Equal("game:rock-granite", World.BlockAt(pos).Code.ToString());
         }
-        Assert.Equal(payload, ReadColumnModdata(anchor));
+        Assert.Equal(payload, ChunkPersistence.ReadColumnModdata(World, anchor));
     }
 
     [AtlasScenario(TimeoutMs = 120_000)]
@@ -54,18 +48,18 @@ public class ChunkPersistenceScenarios : AtlasScenarioBase
         {
             if (cycle == 0)
             {
-                await LoadColumn(anchor);
+                await ChunkPersistence.LoadColumn(World, anchor);
             }
-            written.AddRange(await WritePatternConfirmed(anchor, saltForCycle: cycle));
-            SetColumnModdata(anchor, new byte[] { (byte)cycle, 0x51 });
+            written.AddRange(await ChunkPersistence.WritePatternConfirmed(World, anchor, saltForCycle: cycle));
+            ChunkPersistence.SetColumnModdata(World, anchor, new byte[] { (byte)cycle, 0x51 });
 
-            await SaveUnloadReload(anchor);
+            await ChunkPersistence.SaveUnloadReload(World, anchor);
 
             foreach (BlockPos pos in written)
             {
                 Assert.Equal("game:rock-granite", World.BlockAt(pos).Code.ToString());
             }
-            byte[]? moddata = ReadColumnModdata(anchor);
+            byte[]? moddata = ChunkPersistence.ReadColumnModdata(World, anchor);
             Assert.NotNull(moddata);
             Assert.Equal((byte)cycle, moddata![0]);
         }
@@ -79,14 +73,14 @@ public class ChunkPersistenceScenarios : AtlasScenarioBase
         // assertions above.
         const string TorchCode = "game:torch-basic-lit-up";
         BlockPos anchor = World.Spawn.AddCopy(200, 1, 200);
-        await LoadColumn(anchor);
+        await ChunkPersistence.LoadColumn(World, anchor);
 
         BlockPos torchPos = anchor.AddCopy(4, 2, 4);
         World.SetBlock(TorchCode, torchPos);
         Assert.Equal(TorchCode, World.BlockAt(torchPos).Code.ToString());
         // SaveUnloadReload's own reload wait is gated on moddata being readable again (see
         // its comment): without any, the predicate can never turn true.
-        SetColumnModdata(anchor, new byte[] { 0x4C });
+        ChunkPersistence.SetColumnModdata(World, anchor, new byte[] { 0x4C });
 
         // Let the light flood-fill settle before the first reading.
         await World.Ticks(30);
@@ -100,11 +94,11 @@ public class ChunkPersistenceScenarios : AtlasScenarioBase
             torchPos.AddCopy(0, 1, 0),
             anchor.AddCopy(-4, 2, -4), // far from the torch, same column
         };
-        (int Sun, int Block)[] before = ReadLightLevels(samples);
+        (int Sun, int Block)[] before = ChunkPersistence.ReadLightLevels(World, samples);
 
-        await SaveUnloadReload(anchor);
+        await ChunkPersistence.SaveUnloadReload(World, anchor);
 
-        (int Sun, int Block)[] after = ReadLightLevels(samples);
+        (int Sun, int Block)[] after = ChunkPersistence.ReadLightLevels(World, samples);
         for (int i = 0; i < samples.Length; i++)
         {
             Assert.True(before[i].Sun == after[i].Sun,
@@ -112,85 +106,5 @@ public class ChunkPersistenceScenarios : AtlasScenarioBase
             Assert.True(before[i].Block == after[i].Block,
                 $"block light at sample {i} changed after reload on {ServerFlavor.Name}: {before[i].Block} -> {after[i].Block}");
         }
-    }
-
-    private (int Sun, int Block)[] ReadLightLevels(BlockPos[] positions)
-    {
-        var readings = new (int Sun, int Block)[positions.Length];
-        for (int i = 0; i < positions.Length; i++)
-        {
-            readings[i] = (
-                World.Api.World.BlockAccessor.GetLightLevel(positions[i], EnumLightLevelType.OnlySunLight),
-                World.Api.World.BlockAccessor.GetLightLevel(positions[i], EnumLightLevelType.OnlyBlockLight));
-        }
-        return readings;
-    }
-
-    private async Task LoadColumn(BlockPos anchor)
-    {
-        World.Api.WorldManager.LoadChunkColumnPriority(anchor.X / 32, anchor.Z / 32);
-        await World.Until(
-            () => World.Api.World.BlockAccessor.GetChunkAtBlockPos(anchor) != null,
-            timeoutTicks: 600);
-    }
-
-    private async Task SaveUnloadReload(BlockPos anchor)
-    {
-        CommandResult save = await World.ExecuteCommand("/autosavenow");
-        Assert.True(save.Ok, $"/autosavenow failed on {ServerFlavor.Name} ({save.Status}): {save.Message}");
-        // Part of the chunk flush happens off-thread after the command returns, and
-        // UnloadChunkColumn never persists: unloading too early discards the in-memory
-        // chunk before it reaches the database. Give the flush time to settle.
-        await World.Ticks(60);
-
-        World.Api.WorldManager.UnloadChunkColumn(anchor.X / 32, anchor.Z / 32);
-        await World.Until(
-            () => World.Api.World.BlockAccessor.GetChunkAtBlockPos(anchor) == null,
-            timeoutTicks: 600);
-
-        World.Api.WorldManager.LoadChunkColumnPriority(anchor.X / 32, anchor.Z / 32);
-        // Moddata only exists in the stored column: once it is readable again, the
-        // database copy has been applied and block assertions are meaningful.
-        await World.Until(
-            () => World.Api.World.BlockAccessor.GetChunkAtBlockPos(anchor) != null
-                  && ReadColumnModdata(anchor) != null,
-            timeoutTicks: 600);
-    }
-
-    /// <summary>
-    /// Writes a deterministic pattern of blocks inside the anchor's chunk column, salted
-    /// per cycle so repeated cycles add distinct positions, then waits until every write
-    /// reads back: a column that is still loading swallows writes silently.
-    /// </summary>
-    private async Task<List<BlockPos>> WritePatternConfirmed(BlockPos anchor, int saltForCycle)
-    {
-        var positions = new List<BlockPos>();
-        for (int i = 0; i < 8; i++)
-        {
-            positions.Add(anchor.AddCopy(i, 2 + saltForCycle, (i * 3) % 16));
-        }
-
-        foreach (BlockPos pos in positions)
-        {
-            World.SetBlock("game:rock-granite", pos);
-        }
-        await World.Until(
-            () => positions.TrueForAll(p => World.BlockAt(p).Code.Path == "rock-granite"),
-            timeoutTicks: 300);
-        return positions;
-    }
-
-    private void SetColumnModdata(BlockPos anchor, byte[] payload)
-    {
-        IWorldChunk chunk = World.Api.World.BlockAccessor.GetChunkAtBlockPos(anchor);
-        Assert.NotNull(chunk);
-        chunk.SetModdata(ModdataKey, payload);
-        chunk.MarkModified();
-    }
-
-    private byte[]? ReadColumnModdata(BlockPos anchor)
-    {
-        IWorldChunk? chunk = World.Api.World.BlockAccessor.GetChunkAtBlockPos(anchor);
-        return chunk?.GetModdata(ModdataKey);
     }
 }
