@@ -1,0 +1,12 @@
+{
+  "type": "code",
+  "modid": "stratumparitypersist",
+  "name": "StratumParity Persistence Probe",
+  "description": "Test-only mod that writes a boot record into the savegame, and into the chunk, map chunk and map region of the spawn column plus one marker block per boot, so a restart can be checked against what survived.",
+  "authors": [ "Pixnop" ],
+  "version": "1.0.0",
+  "side": "server",
+  "dependencies": {
+    "game": ""
+  }
+}

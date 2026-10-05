@@ -1,0 +1,16 @@
+16047|16047|775|42d3b72615b0ade5a9f7a40c490a02331a3de85c1ba8f271792e06d9d0d01a4f|ore-high-olivine_peridot-peridotite=9;ore-low-olivine_peridot-peridotite=4;ore-medium-cassiterite-granite=23;ore-olivine-peridotite=695;ore-rich-bismuthinite-granite=44
+16047|16048|1017|783c38899a052e7ab8e4be94650d6bda040c1d1ec1149153633998ccecf7ec35|ore-olivine-peridotite=927;ore-rich-bismuthinite-granite=27;ore-rich-cassiterite-granite=63
+16047|16049|354|827374e803516f29402e5867885229c415fe759ad59c0249abf3b6a1fadbbe3d|ore-high-olivine_peridot-peridotite=1;ore-low-olivine_peridot-peridotite=1;ore-medium-bismuthinite-granite=18;ore-medium-bismuthinite-peridotite=15;ore-olivine-peridotite=259;ore-rich-cassiterite-granite=60
+16047|16050|166|ff475d928908c586b00f872d7b346c41cc521fea1437ed83e02ea94ce390865e|ore-flint-sandstone=6;ore-high-olivine_peridot-peridotite=1;ore-medium-olivine_peridot-peridotite=1;ore-medium-sphalerite-granite=9;ore-olivine-peridotite=135;ore-poor-cassiterite-granite=14
+16048|16047|360|354f05e258447e20ed0cb48389fce5f0c9dcbf50a0d0d3896545c9f0c991d1ed|ore-low-olivine_peridot-peridotite=1;ore-medium-cassiterite-granite=89;ore-medium-olivine_peridot-peridotite=1;ore-quartz-granite=269
+16048|16048|577|b8c8009691ae8ed958a7dd5bf8fa410b200ae2379e10b2330ee71ab268649233|ore-lignite-sandstone=497;ore-medium-bismuthinite-granite=30;ore-medium-cassiterite-granite=3;ore-quartz-granite=47
+16048|16049|271|db243b5fa4e37e15839cbab4232bd8c0bca44f1a1dc967b31b85e7c774040672|ore-lignite-sandstone=4;ore-low-olivine_peridot-peridotite=1;ore-medium-olivine_peridot-peridotite=1;ore-quartz-granite=84;ore-quartz-peridotite=163;ore-rich-bismuthinite-granite=18
+16048|16050|126|bc9889888fb9b025e23c4af36f215b33ca1262550a66ed788be728f8fc6d740e|ore-flint-sandstone=1;ore-high-olivine_peridot-peridotite=2;ore-medium-bismuthinite-granite=41;ore-medium-cassiterite-granite=60;ore-medium-emerald-phyllite=1;ore-poor-nativecopper-sandstone=18;ore-quartz-granite=3
+16049|16047|2200|420e627bcd5b14b526df0d6f2cc150d8a279b3c4acb367674e8eead08db24571|ore-medium-cassiterite-granite=12;ore-quartz-granite=2188
+16049|16048|868|f6a57ddccae6561c89a02062636bf75f2e45c6a797b55f6ae78e72527feb7321|ore-lignite-sandstone=40;ore-quartz-granite=828
+16049|16049|1839|a525a9ae5752409ec6862b88da01ddc7c20ede2ad4d036ea9ca4326c60902287|ore-flint-sandstone=20;ore-quartz-granite=1800;ore-rich-cassiterite-granite=19
+16049|16050|854|643e747451578c2505c2a508a307202b60127752f330fc1bcce6fbedb60c11d5|ore-bountiful-cassiterite-granite=42;ore-flint-sandstone=8;ore-low-emerald-peridotite=1;ore-medium-bismuthinite-granite=2;ore-medium-cassiterite-granite=1;ore-quartz-granite=800
+16050|16047|2387|1286dfa6a3411a58eabb864642341bc5df0df2b4621a6b9559bba6fcec1d8a1f|ore-lignite-sandstone=238;ore-quartz-granite=2149
+16050|16048|1447|51df36a2c4d6c61d5f8a3233646894dd5c48f727f46aebbe27e81d80b28825f5|ore-quartz-granite=1447
+16050|16049|1627|faa1fba20f6ec34d5c7ec97ea49d7ad2d09c3b8a2f4f1e0530506117f079201a|ore-quartz-granite=1627
+16050|16050|2247|a032df0f58df0c50671aff64c679c3454b8228a200c0d7ccdfc4e5df61da17c8|ore-medium-cassiterite-granite=24;ore-poor-quartz_nativesilver-granite=6;ore-quartz-granite=2217

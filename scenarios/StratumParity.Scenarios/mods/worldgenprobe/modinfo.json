@@ -1,0 +1,12 @@
+{
+  "type": "code",
+  "modid": "stratumparityworldgen",
+  "name": "StratumParity Worldgen Probe",
+  "description": "Test-only mod that registers a column generation handler at every worldgen pass of the standard world and records what each handler saw in the moddata of the column's first chunk.",
+  "authors": [ "Pixnop" ],
+  "version": "1.0.0",
+  "side": "server",
+  "dependencies": {
+    "game": ""
+  }
+}

@@ -23,11 +23,12 @@ a Stratum install, and the results must line up. Scenarios fall into two familie
 
 ## Coverage
 
-Fifty-one scenarios in nineteen classes (plus three unit tests of the known-divergence
-policy): parity scenarios, probes, and one informational perf measurement, green on both
-flavors against the pinned pair (ten confirmed Stratum bugs are pinned as known
-divergences, listed below), re-run by CI on every PR and weekly against the pinned Stratum
-release. A separate daily **indev scout**
+Sixty-four scenarios in twenty-five classes (plus twenty world free unit tests of the
+known-divergence policy, the golden file formats, the ore count bands and the registry and
+tree digests): parity scenarios, probes, and one informational perf measurement, green on
+both flavors against the pinned pair (fourteen confirmed Stratum bugs are pinned as known
+divergences, listed below), re-run
+by CI on every PR and weekly against the pinned Stratum release. A separate daily **indev scout**
 workflow resolves the latest Stratum pre-release and runs the same suite against it:
 non-blocking early warning for the next stable. Scout runs are recorded in their own
 history and shown in the dashboard's Builds section, never mixed into the stable trends.
@@ -49,11 +50,15 @@ history and shown in the dashboard's Builds section, never mixed into the stable
 | Asset matching and registry | `AssetMatchingScenarios` | Two truth tables on `WildcardUtil.Match`: 26 common rows that both flavors agree on, and 12 edge rows (10 `Match` calls and 2 through `SatisfiesAsIngredient`) that form a probe, because the fastMatch rewrite of Stratum answers every one differently from vanilla (empty `allowedVariants`, a leading `@`, a `*` domain with a literal path, letter case, a null wildcard); that difference is under discussion and not reported yet; a per-code digest of every block, item and entity type and the grid recipes against a golden captured from the vanilla leg (`fixtures/assetmatching-registry/`, written with `PARITY_REGISTRY_CAPTURE`, re-pinned on a game bump, `PARITY_REGISTRY_DUMP` writes the canonical text behind each hash for a diff); a shaped, a shapeless, a wildcard and a tool recipe crafted through the player's grid consume exactly their inputs |
 | Despawn clock | `DespawnClockScenarios` | Dropped items 16, 80 and 200 blocks from the nearest player age at the same rate over 60 s (the clock is the `deathTime` attribute plus the behavior's accumulator); with `EntityTicking.Enabled: false` all three keep pace on both flavors |
 | Body temperature | `BodyTemperatureProbes` | Updates of a survival player's body temperature counted over 600 entity ticks: about every second on vanilla, about every three seconds on Stratum with its jitter (5 to 9 updates over 20 s); `BodyTemperature.Enabled: false` is expected to bring the vanilla cadence back |
+| Terrain generation | `WorldgenTerrainScenarios`, `WorldgenSplitDisabledScenarios` | On the standard world of seed 7351, in a golden rectangle of 16 columns about 2000 blocks from spawn: height map, rock strata and cave air against a golden from the vanilla leg (`WorldgenGoldens`, re-pinned on a game bump), also with Stratum's split terrain pass switched off through a seeded `stratum.json`; the ore blocks of each column and the water rivulet sources of 36 peeked columns against goldens captured from the vanilla leg (`fixtures/worldgenterrain-goldens/`, written with `PARITY_WORLDGEN_CAPTURE`; the ore blocks are a probe, see below); the prospecting pick's strata simulation against the generated column; a peek up to each worldgen pass (Terrain, TerrainFeatures, Vegetation) tells the passes apart and never loads the column; 200 columns requested at once all reach Done and the request queues drain back; `/stratum pregen` over the rectangle completes and gives the golden terrain. Stratum diverges on caves, rivulets and the Terrain peek (known divergences below). Probe: the ore blocks. Vanilla equals the ore golden, while Stratum's optimized `DiscGenerator` (pull request StratumServer/Stratum#33, commit `3f621d7`: it hashes the disc edge per block column instead of sampling a smooth noise, and `GenDeposit` takes 9.1 s instead of 32.6 s over 10,200 chunks) places other ore blocks for the same seed. The deposits are the same: in the 16 golden columns Stratum has 17431 ore blocks of 21 ores against vanilla's 17115 of 20 (+1.8%), a count per column between -13.5% and +19.8% of vanilla's, and the same most plentiful ore in every column. A deliberate speed trade-off that Stratum accepted, so not reported; the scenarios hold Stratum to bands (total within 10%, each column within 30%, same most plentiful ore) and never pin a block |
+| Worldgen pass contract | `WorldgenPassContractScenarios`, `WorldgenPassContractSplitScenarios` | A staged probe mod registers a chunk column generation handler at each of the five passes: each one runs once per column in pass order, while the column's own map chunk is at that pass, with the eight neighbours ready after Terrain and the column Done afterwards, and the rock, granite and air counts of the column at the Terrain pass equal the vanilla golden in the stock topology (Stratum diverges on caves and tall grass, known divergences below). With the split kept next to the foreign handler (`AutoDisableSplitForMods` off through a seeded `stratum.json`) the contract holds too, and a Terrain handler sees the pre-strata shape on Stratum by design (granite equals rock): a documented probe, not a bug |
+| Story structures | `WorldgenStoryStructureScenarios` | The six story structures of seed 7351 sit where vanilla puts them (centres taken from the vanilla leg, next to the configured distances and directions) at the vanilla Y, nothing shifted on a 256 high world; the ruins of a 12x12 area of columns never overlap each other, with at least 50 of them (vugs and lakes are left out, vanilla overlaps those); runs on the survive and build playstyle, because the creative one switches lore content off |
+| Tree generation | `TreeGenerationScenarios` | Stratum's `TreeGen` rewrite (block positions from a manual stack indexed by branch depth, a scratch position for vines, reordered moss conditions) must not change a tree: every `TreeGen` generator (35 in the base game) grows two sapling shaped and two worldgen shaped trees (vines and moss on, either hemisphere) at one spot of a flat world, from an `LCGRandom` seeded per generator and sample, and the digest of every block each one staged (through a bulk block accessor that is never committed, so the world stays untouched) equals a golden captured from the vanilla leg (`fixtures/treegeneration-goldens/`, written with `PARITY_TREEGEN_CAPTURE`, re-pinned on a game bump, `PARITY_TREEGEN_DUMP` writes the block list behind each digest for a diff); the whole set grown a second time in reverse order must give the same digests |
 | Tick cost (perf) | `TickCostProbes` | Server work-ms per tick under a fixed active-entity load, emitted to the dashboard as a trend; informational, not a pass/fail gate (see below) |
 
 ### Known divergences
 
-Ten Stratum behaviours that differ from vanilla are pinned rather than hidden. On the two
+Fourteen Stratum behaviours that differ from vanilla are pinned rather than hidden. On the two
 builds where each was confirmed (1.22.7-stratum.2 and 1.22.7-stratum.2-indev.1) the Stratum
 side of the scenario asserts the observed bug shape, so a fix turns it red and the entry is
 deleted; vanilla and every other build stay strict parity. Each one is an issue on
@@ -69,6 +74,10 @@ StratumServer/Stratum.
 - [StratumServer/Stratum#363](https://github.com/StratumServer/Stratum/issues/363) (`AssetMatchingScenarios`): the lazy `RegistryObjectType.Resolve` resolves nested children before merging the picked `xByType` values, so `game:clothes-face-surgeonhood` ends with warmth 1 instead of 0.25; it is the only registry object that differs across the digest.
 - [StratumServer/Stratum#359](https://github.com/StratumServer/Stratum/issues/359) (`DespawnClockScenarios`): an item more than 96 blocks from every player ages at about 0.6 of real time, because the very-far tick band hands the despawn behavior 0.33 s per call and it clamps each call at 0.2 s; switching entity ticking off restores it.
 - [StratumServer/Stratum#364](https://github.com/StratumServer/Stratum/issues/364) (`BodyTemperatureProbes`): `Performance.BodyTemperature.Enabled: false` keeps the field defaults of the patched behavior (2 s update, 5 s heat source pass) instead of vanilla's 1 s and 3 s, so the update cadence stays at half the vanilla rate.
+- [StratumServer/Stratum#366](https://github.com/StratumServer/Stratum/issues/366) (`WorldgenTerrainScenarios`, `WorldgenSplitDisabledScenarios`, `WorldgenPassContractScenarios`): the rewritten `GenCaves.SetBlocks` keeps the rock in lava cells, cuts step floors deeper, checks liquids per column and clips domes, so the rock layer (the lava band at y 1 to 7) of five of the 16 golden columns differs, and the Terrain pass rock count of two columns of the pass contract area moves by 25 and 1 blocks.
+- [StratumServer/Stratum#368](https://github.com/StratumServer/Stratum/issues/368) (`WorldgenTerrainScenarios`, `WorldgenSplitDisabledScenarios`): the guard in `GenRivulets.tryGenRivulet` draws the height from a bound one smaller than vanilla, so the same seed gets other rivulet sources: one extra in the golden rectangle, and 13 sources against vanilla's 19 with none in common in the peeked wet area.
+- [StratumServer/Stratum#367](https://github.com/StratumServer/Stratum/issues/367) (`WorldgenTerrainScenarios`): `PeekChunkColumn` up to Terrain stops after the first half of Stratum's split Terrain pass, so the peeked column is bare granite, with no other rock, no soil and no caves.
+- [StratumServer/Stratum#369](https://github.com/StratumServer/Stratum/issues/369) (`WorldgenPassContractScenarios`): in the stock Terrain topology `GenBlockLayers` places tall grass from a worker generator that is not seeded per column, so the tall grass differs from vanilla and from one run to the next.
 
 One scenario is a perf measurement rather than a parity check: `TickCostProbes` records the
 server's per-tick work time under a fixed load of active entities and emits it to the dashboard.
@@ -171,6 +180,12 @@ scripts without a server, and the compare job runs it.
   (compiled by the game's ModLoader): probe blocks that turn to granite or andesite on a
   random tick, so random tick coverage becomes countable world state, and counter blocks
   that log neighbour updates and sampled random ticks for the scenarios to read
+- `scenarios/StratumParity.Scenarios/mods/worldgenprobe/`: test-only source mod with a
+  handler at each worldgen pass of the standard world, recording in chunk moddata what the
+  handler saw (pass, the column's own pass, rock and air counts, how many neighbours were ready)
+- `scenarios/StratumParity.Scenarios/mods/persistprobe/`: test-only source mod that appends a
+  boot record to the savegame and to the chunk, map chunk and map region of the world centre
+  column at every boot, plus one marker block per boot, for the restart scenarios
 - `scenarios/StratumParity.Scenarios/fixtures/`: seeded Stratum configs for the toggle
   scenarios (each includes `stratum.json` next to the performance file: before
   [Stratum#159](https://github.com/StratumServer/Stratum/pull/159), shipped in
