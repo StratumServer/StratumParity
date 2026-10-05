@@ -11,7 +11,7 @@ set -euo pipefail
 # fork's VintagestoryLib never runs against the vanilla API copy (that mix
 # fails at boot with MissingFieldException). Requires the Atlas CLI at the same version
 # as the Pixnop.Atlas.XUnit package the project references:
-#   dotnet tool install -g Pixnop.Atlas.Cli --version 0.16.0
+#   dotnet tool install -g Pixnop.Atlas.Cli --version 0.16.1
 
 if [[ $# -ne 2 ]]; then
   echo "Usage: $0 <vanilla-install> <stratum-install>" >&2
@@ -19,7 +19,7 @@ if [[ $# -ne 2 ]]; then
 fi
 
 if ! command -v atlas >/dev/null 2>&1; then
-  echo "atlas CLI not found; install it with: dotnet tool install -g Pixnop.Atlas.Cli --version 0.16.0" >&2
+  echo "atlas CLI not found; install it with: dotnet tool install -g Pixnop.Atlas.Cli --version 0.16.1" >&2
   exit 2
 fi
 
