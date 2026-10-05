@@ -135,6 +135,34 @@ into the test output before each run: the copy must match the install the run ta
 at boot), and staging replaces the full rebuild per install that guaranteed this before
 Atlas 0.11.
 
+### CI shards and the extended tier
+
+Each CI lane runs one leg per flavor and shard (`vanilla 1of3`, `stratum 2of3`, ...), so a
+leg stays around ten minutes as the suite grows. `scripts/shard_filter.py` lists the tests
+of the built assembly (`dotnet test --no-build --list-tests`) and gives a class to shard
+`crc32(class name) % count`: nothing is registered anywhere, a new test class lands in a
+shard on its own and never moves another class. Every shard uploads its TRX as
+`<flavor>-<index>of<count>.trx`; the compare and publish jobs run `scripts/merge_trx.py`
+to merge them into one `<flavor>.trx` before `atlas diff`, the job summary and the
+dashboard history, which therefore still see a single run with every scenario. A missing,
+empty or overlapping shard fails the compare job by name, and a shard that ran fewer tests
+than it was assigned fails its own leg.
+
+To change the number of shards, edit the `shard` list of the matrix in both workflows
+(`[1of4, 2of4, 3of4, 4of4]`). To reproduce one leg locally, after a Release build:
+
+```bash
+VINTAGE_STORY=/path/to/server dotnet test scenarios/StratumParity.Scenarios -c Release --no-build \
+  --filter "$(python3 scripts/shard_filter.py --shard 2of3 --project scenarios/StratumParity.Scenarios)"
+```
+
+Tests that are too slow for every pull request can be tagged
+`[Trait("Category", "Extended")]` (on a class or a method). Pull requests and pushes to
+`main` skip them; the weekly Parity run, a manual Parity run with the `extended` input
+checked, and the daily indev scout run them. `scripts/run-parity.sh` and a plain
+`dotnet test` run everything. `python3 scripts/test_ci_scripts.py` self-checks the two
+scripts without a server, and the compare job runs it.
+
 ## Layout
 
 - `scenarios/StratumParity.Scenarios/`: the xUnit scenario project (consumes the
@@ -151,6 +179,9 @@ Atlas 0.11.
 - `scripts/run-parity.sh`: differential runner (one build, two staged runs, one diff)
 - `scripts/render_summary.py`: renders the CI job summary from `atlas diff --json-tests`
   output and gates on parity (symmetric divergence check)
+- `scripts/shard_filter.py`, `scripts/merge_trx.py`, `scripts/test_ci_scripts.py`: split
+  the suite across CI shards by class, merge the shard reports back into one per flavor,
+  and the server-free self-check of both
 - `scripts/history_append.py`: appends one run to the dashboard history on the `gh-pages`
   branch, `data/runs.json` for the pinned lane and `data/scout.json` for the indev lane
 - `site/index.html`: the dashboard, one static page with no build step, copied to
