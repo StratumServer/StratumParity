@@ -1,0 +1,12 @@
+{
+  "type": "content",
+  "modid": "stratumparitylight",
+  "name": "StratumParity Light Probe",
+  "description": "Test-only assets: full-cube lamps with an exact lightHsv per color and no light absorption, so light scenarios control every source value and the lamps never shade each other.",
+  "authors": [ "Pixnop" ],
+  "version": "1.0.0",
+  "side": "universal",
+  "dependencies": {
+    "game": ""
+  }
+}
