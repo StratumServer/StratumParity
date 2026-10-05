@@ -189,6 +189,15 @@ scripts without a server, and the compare job runs it.
 - `scenarios/StratumParity.Scenarios/mods/persistprobe/`: test-only source mod that appends a
   boot record to the savegame and to the chunk, map chunk and map region of the world centre
   column at every boot, plus one marker block per boot, for the restart scenarios
+- `scenarios/StratumParity.Scenarios/mods/lightprobe/`: test-only assets mod (no code):
+  full-cube lamps in seven colors with an exact `lightHsv` and no light absorption, for the
+  lighting scenarios
+- `scenarios/StratumParity.Scenarios/mods/entityprobe/`: test-only assets mod (no code): a copy
+  of the straw dummy whose code path starts with `chicken-`, so Stratum's ambient fauna tick
+  tier applies to it
+- `scenarios/StratumParity.Scenarios/mods/aiprobe/`: test-only source mod with an AI task that
+  never executes and counts how often the task manager asks it, so a scenario can read the
+  cadence of the AI task start scan
 - `scenarios/StratumParity.Scenarios/fixtures/`: seeded Stratum configs for the toggle
   scenarios (each includes `stratum.json` next to the performance file: before
   [Stratum#159](https://github.com/StratumServer/Stratum/pull/159), shipped in
