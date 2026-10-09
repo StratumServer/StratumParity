@@ -20288,6 +20288,974 @@
     }
    },
    "parity": true
+  },
+  {
+   "run_id": "37941888820",
+   "sha": "f230a5cf17aa",
+   "date": "2026-10-09T14:15:37Z",
+   "stratum_tag": "v1.22.7-stratum.2-indev.1",
+   "event": "schedule",
+   "stratum_sha": "e964db301b29",
+   "atlas_version": "0.16.1",
+   "vs_version": "1.22.7",
+   "scenarios": {
+    "AssetMatchingScenarios.AssetRegistry_Should_MatchVanillaDigest_When_ServerBooted": {
+     "v": [
+      "Passed",
+      4.95
+     ],
+     "s": [
+      "Passed",
+      5.03
+     ]
+    },
+    "AssetMatchingScenarios.GridCrafting_Should_ConsumeExactInputs_When_RecipesCrafted": {
+     "v": [
+      "Passed",
+      0.9
+     ],
+     "s": [
+      "Passed",
+      0.77
+     ]
+    },
+    "AssetMatchingScenarios.WildcardMatch_Should_FollowVanillaOnVanillaAndTheFastMatchRewriteOnStratum_When_EdgePatternsMatched": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "AssetMatchingScenarios.WildcardMatch_Should_FollowVanillaTruthTable_When_CommonPatternsMatched": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "AssetRegistryDigestTests.CanonicalJson_Should_WriteBlockIdArraysAsSortedCodes_When_TheEngineFilledThem": {
+     "v": [
+      "Passed",
+      0.03
+     ],
+     "s": [
+      "Passed",
+      0.01
+     ]
+    },
+    "BlockTickContractScenarios.BulkCommit_Should_NotifyEachModifiedBlock_When_AccessorCommitted": {
+     "v": [
+      "Passed",
+      1.2
+     ],
+     "s": [
+      "Passed",
+      1.17
+     ]
+    },
+    "BlockTickContractScenarios.KeptRandomTickPosition_Should_NeverBeRewritten_When_HandlerKeepsIt": {
+     "v": [
+      "Passed",
+      7.04
+     ],
+     "s": [
+      "Passed",
+      8.09
+     ]
+    },
+    "BlockTickContractScenarios.NeighbourBlock_Should_ReceiveOneUpdatePerChange_When_EachNeighbourChangesOnce": {
+     "v": [
+      "Passed",
+      2.23
+     ],
+     "s": [
+      "Passed",
+      2.27
+     ]
+    },
+    "BlockTickContractScenarios.NeighbourUpdates_Should_DrainEveryChange_When_TwoThousandBlocksSetInOneTick": {
+     "v": [
+      "Passed",
+      2.66
+     ],
+     "s": [
+      "Passed",
+      2.56
+     ]
+    },
+    "BlockTickListenerDisabledScenarios.FarListener_Should_FireFullRate_When_LimitDisabledByConfig": {
+     "v": [
+      "Passed",
+      4.91
+     ],
+     "s": [
+      "Passed",
+      4.9
+     ]
+    },
+    "BlockTickListenerProbes.FarListener_Should_FireOnVanillaAndFreezeOnStratum_When_DefaultsActive": {
+     "v": [
+      "Passed",
+      4.9
+     ],
+     "s": [
+      "Passed",
+      4.94
+     ]
+    },
+    "BlockTickListenerProbes.ForceLoadedFarListener_Should_KeepFiring_When_ColumnIsKeptLoaded": {
+     "v": [
+      "Passed",
+      4.94
+     ],
+     "s": [
+      "Passed",
+      4.92
+     ]
+    },
+    "BodyTemperatureProbes.BodyTemperature_Should_UpdateEverySecondOnVanillaAndEveryThreeOnStratum_When_DefaultsActive": {
+     "v": [
+      "Passed",
+      21.23
+     ],
+     "s": [
+      "Passed",
+      21.32
+     ]
+    },
+    "BodyTemperatureProbes.BodyTemperature_Should_UpdateEverySecond_When_DisabledByConfig": {
+     "v": [
+      "Passed",
+      21.27
+     ],
+     "s": [
+      "Passed",
+      21.27
+     ]
+    },
+    "ChunkPersistenceScenarios.ChunkWithThreeHundredBlockTypes_Should_RoundTrip_When_PackedSavedAndShrunk": {
+     "v": [
+      "Passed",
+      17.87
+     ],
+     "s": [
+      "Passed",
+      18.62
+     ]
+    },
+    "ChunkPersistenceScenarios.LightLevels_Should_SurviveUnloadReload_When_TorchIsLit": {
+     "v": [
+      "Passed",
+      1.43
+     ],
+     "s": [
+      "Passed",
+      1.48
+     ]
+    },
+    "ChunkPersistenceScenarios.ModifiedColumn_Should_PersistOnNaturalUnload_When_NoSaveIsRequested": {
+     "v": [
+      "Passed",
+      15.67
+     ],
+     "s": [
+      "Passed",
+      17.09
+     ]
+    },
+    "ChunkPersistenceScenarios.ModifiedColumn_Should_SurviveUnloadReload_When_SavedBeforeUnload": {
+     "v": [
+      "Passed",
+      0.49
+     ],
+     "s": [
+      "Passed",
+      0.46
+     ]
+    },
+    "ChunkPersistenceScenarios.RepeatedCycles_Should_PersistEveryMutation_When_ColumnIsRecycled": {
+     "v": [
+      "Passed",
+      1.05
+     ],
+     "s": [
+      "Passed",
+      1.15
+     ]
+    },
+    "ChunkPersistenceScenarios.RestingEntities_Should_SurviveUnloadReload_When_ColumnSaved": {
+     "v": [
+      "Passed",
+      3.44
+     ],
+     "s": [
+      "Passed",
+      3.54
+     ]
+    },
+    "ChunkReadPoolScenarios.ModifiedColumn_Should_SurviveUnloadReload_When_ReadPoolEnabled": {
+     "v": [
+      "Passed",
+      0.51
+     ],
+     "s": [
+      "Passed",
+      0.63
+     ]
+    },
+    "ChunkReadPoolScenarios.TwentyFiveColumns_Should_RoundTrip_When_ReloadedInOneRequestThroughReadPool": {
+     "v": [
+      "Passed",
+      2.23
+     ],
+     "s": [
+      "Passed",
+      2.22
+     ]
+    },
+    "ClimateQueryScenarios.AllLoadedMapRegions_Should_ReturnFreshCopyOnVanillaAndTheSharedSnapshotOnStratum_When_ReadTwiceInOneTick": {
+     "v": [
+      "Passed",
+      0.01
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "ClimateQueryScenarios.ClimateIntOverload_Should_IgnorePreviousQueries_When_CalledAfterAnotherPosition": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "ClimateQueryScenarios.FullModeClimate_Should_ReturnIndependentObjects_When_QueriedTwice": {
+     "v": [
+      "Passed",
+      0.01
+     ],
+     "s": [
+      "Passed",
+      0.01
+     ]
+    },
+    "ClimateQueryScenarios.TemperatureOnly_Should_MatchFreshComputation_When_ColumnsShareAChunk": {
+     "v": [
+      "Passed",
+      0.11
+     ],
+     "s": [
+      "Passed",
+      0.11
+     ]
+    },
+    "ClimateQueryScenarios.TemperatureRainfallOnly_Should_ReturnStableValues_When_QueriedThreeTimes": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "CommandParityScenarios.HomeCommands_Should_ExistOnlyOnStratum_When_Executed": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.01
+     ]
+    },
+    "CommandParityScenarios.StratumCommand_Should_ExistOnlyOnStratum_When_Executed": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "CommandParityScenarios.StratumSetting_Should_RestorePreviousValue_When_HandleDisposed": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.01
+     ]
+    },
+    "CommandParityScenarios.TimeAdd_Should_AdvanceCalendar_When_Executed": {
+     "v": [
+      "Passed",
+      0.04
+     ],
+     "s": [
+      "Passed",
+      0.04
+     ]
+    },
+    "CommandParityScenarios.UnknownCommand_Should_ReportSameErrorCode_When_Executed": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "DespawnClockScenarios.FarDroppedItem_Should_AgeLikeNearItem_When_EntityTickingDisabled": {
+     "v": [
+      "Passed",
+      64.24
+     ],
+     "s": [
+      "Passed",
+      64.05
+     ]
+    },
+    "DespawnClockScenarios.FarDroppedItem_Should_AgeLikeNearItem_When_NoPlayerIsClose": {
+     "v": [
+      "Passed",
+      63.66
+     ],
+     "s": [
+      "Passed",
+      63.63
+     ]
+    },
+    "EntityTickingDisabledScenarios.FarEntity_Should_TickFullRate_When_EntityTickingDisabledByConfig": {
+     "v": [
+      "Passed",
+      7.76
+     ],
+     "s": [
+      "Passed",
+      7.61
+     ]
+    },
+    "EntityTickingProbes.FarCreature_Should_TickFullRateOnVanillaAndThrottledOnStratum_When_DefaultsActive": {
+     "v": [
+      "Passed",
+      7.52
+     ],
+     "s": [
+      "Passed",
+      7.51
+     ]
+    },
+    "EntityTickingProbes.FarEntity_Should_TickFullRateOnVanillaAndThrottledOnStratum_When_DefaultsActive": {
+     "v": [
+      "Passed",
+      7.63
+     ],
+     "s": [
+      "Passed",
+      7.57
+     ]
+    },
+    "IncrementalFlushProbes.ModifiedColumn_Should_PersistOnNaturalUnload_When_IncrementalFlushDisabled": {
+     "v": [
+      "Passed",
+      16.23
+     ],
+     "s": [
+      "Passed",
+      16.0
+     ]
+    },
+    "IncrementalFlushProbes.UnsavedChanges_Should_BeLostOnVanillaAndKeptOnStratum_When_ColumnUnloadedByApi": {
+     "v": [
+      "Passed",
+      50.41
+     ],
+     "s": [
+      "Passed",
+      50.99
+     ]
+    },
+    "IncrementalFlushProbes.UnsavedChanges_Should_BeLost_When_IncrementalFlushDisabled": {
+     "v": [
+      "Passed",
+      50.45
+     ],
+     "s": [
+      "Passed",
+      50.99
+     ]
+    },
+    "InventoryResyncScenarios.DeathDrop_Should_FlushEmptiedSlots_When_ServerIsQuiet": {
+     "v": [
+      "Passed",
+      0.71
+     ],
+     "s": [
+      "Passed",
+      0.92
+     ]
+    },
+    "InventoryResyncScenarios.DeathDrop_Should_SpawnFormerInventory_When_PlayerDies": {
+     "v": [
+      "Passed",
+      1.05
+     ],
+     "s": [
+      "Passed",
+      0.87
+     ]
+    },
+    "KnownDivergenceTests.Applies_Should_BeFalse_When_BuildIsUnlistedOrUnknown": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "KnownDivergenceTests.Applies_Should_BeTrue_When_BuildIsListed": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "KnownDivergenceTests.Constructor_Should_Reject_When_IssueOrBuildsMissing": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "MicroblockEditScenarios.MicroblockEdits_Should_KeepEachShape_When_TwoBlocksAreOpenAtOnce": {
+     "v": [
+      "Passed",
+      0.14
+     ],
+     "s": [
+      "Passed",
+      0.14
+     ]
+    },
+    "MicroblockEditScenarios.MicroblockRebuild_Should_PreserveVoxelsAndFaceSolidity_When_CuboidsRebuilt": {
+     "v": [
+      "Passed",
+      0.55
+     ],
+     "s": [
+      "Passed",
+      0.13
+     ]
+    },
+    "PathfindingScenarios.Creature_Should_ReachGoal_When_NavigatingTheMazeAsync": {
+     "v": [
+      "Passed",
+      8.04
+     ],
+     "s": [
+      "Passed",
+      8.22
+     ]
+    },
+    "PathfindingScenarios.FoundPath_Should_KeepItsNodesOnVanillaAndBeRewrittenOnStratum_When_AnotherSearchRuns": {
+     "v": [
+      "Passed",
+      0.3
+     ],
+     "s": [
+      "Passed",
+      0.3
+     ]
+    },
+    "PathfindingScenarios.MazeRoute_Should_FollowTheOnlyCorridor_When_SearchedSynchronously": {
+     "v": [
+      "Passed",
+      0.25
+     ],
+     "s": [
+      "Passed",
+      0.27
+     ]
+    },
+    "PhysicsActivationQueueScenarios.EarlyDespawnedEntities_Should_DepartFromClients_When_DespawnedBeforeActivation": {
+     "v": [
+      "Passed",
+      3.58
+     ],
+     "s": [
+      "Passed",
+      3.53
+     ]
+    },
+    "PhysicsActivationQueueScenarios.EarlyDespawnedEntities_Should_LeaveNoPhysicsTickable_When_SpawnedAndDespawnedInOneStep": {
+     "v": [
+      "Passed",
+      0.52
+     ],
+     "s": [
+      "Passed",
+      1.55
+     ]
+    },
+    "PhysicsActivationQueueScenarios.EarlyDespawnedEntities_Should_LeaveNoTickable_When_ActivationCapDisabled": {
+     "v": [
+      "Passed",
+      0.51
+     ],
+     "s": [
+      "Passed",
+      0.51
+     ]
+    },
+    "RandomTickDisabledScenarios.FarPlatform_Should_Convert_When_LimitDisabledByConfig": {
+     "v": [
+      "Passed",
+      2.17
+     ],
+     "s": [
+      "Passed",
+      4.02
+     ]
+    },
+    "RandomTickProbes.FarPlatform_Should_ConvertOnVanillaAndStayUntouchedOnStratum_When_DefaultsActive": {
+     "v": [
+      "Passed",
+      1.46
+     ],
+     "s": [
+      "Passed",
+      16.28
+     ]
+    },
+    "RandomTickProbes.RandomTicksPerChunk_Should_BeSixteenOnVanillaAndEightOnStratum_When_ChunkIsFull": {
+     "v": [
+      "Passed",
+      10.38
+     ],
+     "s": [
+      "Passed",
+      10.02
+     ]
+    },
+    "RandomTickProbes.RandomTicksPerChunk_Should_BeSixteen_When_BlockTicksDisabled": {
+     "v": [
+      "Passed",
+      9.91
+     ],
+     "s": [
+      "Passed",
+      9.85
+     ]
+    },
+    "RestartPersistenceScenarios.BootRecords_Should_SurviveRestart_When_ServerShutsDownGracefully": {
+     "v": [
+      "Passed",
+      0.13
+     ],
+     "s": [
+      "Passed",
+      0.11
+     ]
+    },
+    "SmokeParityScenarios.JoinedPlayer_Should_StayConnected_When_ServerTicks": {
+     "v": [
+      "Passed",
+      3.62
+     ],
+     "s": [
+      "Passed",
+      3.64
+     ]
+    },
+    "SmokeParityScenarios.LoadedServer_Should_MatchExpectedFlavor_When_CiArmsTheGuard": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "SmokeParityScenarios.LoadedServer_Should_ReportBuildVersion_When_ItIsStratum": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "SmokeParityScenarios.Server_Should_BootAndAdvanceClock_When_Ticked": {
+     "v": [
+      "Passed",
+      1.0
+     ],
+     "s": [
+      "Passed",
+      1.0
+     ]
+    },
+    "SmokeParityScenarios.SetBlock_Should_ReadBackSameCode_When_Placed": {
+     "v": [
+      "Passed",
+      0.17
+     ],
+     "s": [
+      "Passed",
+      0.17
+     ]
+    },
+    "TickCostProbes.TickCost_NearBand": {
+     "v": [
+      "Passed",
+      51.5
+     ],
+     "s": [
+      "Passed",
+      52.39
+     ],
+     "metrics": {
+      "v": {
+       "ms_per_tick": 20.4,
+       "idle_ms_per_tick": 0.0,
+       "load_entities": 1000.0
+      },
+      "s": {
+       "ms_per_tick": 1.667,
+       "idle_ms_per_tick": 0.0,
+       "load_entities": 1000.0
+      },
+      "ratio": 0.082
+     }
+    },
+    "TreeGenerationDigestTests.Canonical_Should_NotDependOnTheOrderBlocksWereStaged_When_TheFinalStateIsTheSame": {
+     "v": [
+      "Passed",
+      0.01
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "TreeGenerationDigestTests.Canonical_Should_UseTheInvariantCulture_When_TheCurrentCultureWritesAnotherMinusSign": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "TreeGenerationDigestTests.Golden_Should_RoundTripAndNameTheSample_When_OneRowDiffers": {
+     "v": [
+      "Passed",
+      0.01
+     ],
+     "s": [
+      "Passed",
+      0.04
+     ]
+    },
+    "TreeGenerationDigestTests.Row_Should_Change_When_OneBlockOrOneDecorChanges": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "TreeGenerationScenarios.GrownTrees_Should_MatchVanillaShapes_When_GrownWithFixedRandom": {
+     "v": [
+      "Passed",
+      3.05
+     ],
+     "s": [
+      "Passed",
+      3.03
+     ]
+    },
+    "WorldgenGoldensTests.TerrainLayers_Should_ListTheInnerColumnsInOrder_When_PinnedOnTheRectangle": {
+     "v": [
+      "Passed",
+      0.01
+     ],
+     "s": [
+      "Passed",
+      0.01
+     ]
+    },
+    "WorldgenGoldensTests.TerrainMismatches_Should_BeEmpty_When_MeasurementEqualsTheGolden": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "WorldgenGoldensTests.TerrainMismatches_Should_NameLayerAndColumn_When_RockDiffers": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "WorldgenGoldensTests.TerrainPass_Should_ListTheInnerColumnsInOrder_When_PinnedOnTheRectangle": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "WorldgenPassContractScenarios.ProbeHandler_Should_SeeVanillaPassSequence_When_RegisteredAtEveryPass": {
+     "v": [
+      "Passed",
+      5.19
+     ],
+     "s": [
+      "Passed",
+      3.46
+     ]
+    },
+    "WorldgenPassContractSplitScenarios.ProbeHandler_Should_SeeVanillaPassSequence_When_SplitKeptWithForeignHandler": {
+     "v": [
+      "Passed",
+      6.55
+     ],
+     "s": [
+      "Passed",
+      4.97
+     ]
+    },
+    "WorldgenSplitDisabledScenarios.TerrainLayers_Should_MatchVanillaGolden_When_SplitTerrainPassDisabled": {
+     "v": [
+      "Passed",
+      6.09
+     ],
+     "s": [
+      "Passed",
+      4.53
+     ]
+    },
+    "WorldgenStoryStructureScenarios.RuinStructures_Should_NotOverlap_When_AreaGenerated": {
+     "v": [
+      "Passed",
+      10.93
+     ],
+     "s": [
+      "Passed",
+      7.55
+     ]
+    },
+    "WorldgenStoryStructureScenarios.StoryStructures_Should_KeepVanillaLocations_When_WorldCreated": {
+     "v": [
+      "Passed",
+      14.83
+     ],
+     "s": [
+      "Passed",
+      10.18
+     ]
+    },
+    "WorldgenTerrainGoldenFileTests.CompareOres_Should_NameTheColumn_When_OneHashDiffers": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "WorldgenTerrainGoldenFileTests.CompareRivulets_Should_NameMissingAndExtraCells_When_SetsDiffer": {
+     "v": [
+      "Passed",
+      0.03
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "WorldgenTerrainGoldenFileTests.Format_Should_UseTheInvariantCulture_When_TheCurrentCultureWritesAnotherMinusSign": {
+     "v": [
+      "Passed",
+      0.01
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "WorldgenTerrainGoldenFileTests.OreCountsOutsideBand_Should_AcceptOtherBlocksAtComparableCounts_When_TheDepositsAreTheSame": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "WorldgenTerrainGoldenFileTests.OreCountsOutsideBand_Should_NameTheColumn_When_TheCountOrTheMostPlentifulOreMoves": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "WorldgenTerrainGoldenFileTests.Ores_Should_RoundTripThroughTheFileFormat_When_Formatted": {
+     "v": [
+      "Passed",
+      0.01
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "WorldgenTerrainGoldenFileTests.ParseOres_Should_Reject_When_RowHasTheWrongFieldCount": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "WorldgenTerrainGoldenFileTests.Rivulets_Should_RoundTripThroughTheFileFormat_When_Formatted": {
+     "v": [
+      "Passed",
+      0.0
+     ],
+     "s": [
+      "Passed",
+      0.0
+     ]
+    },
+    "WorldgenTerrainScenarios.MassGeneration_Should_CompleteAndDrainQueues_When_TwoHundredColumnsRequested": {
+     "v": [
+      "Passed",
+      23.66
+     ],
+     "s": [
+      "Passed",
+      24.56
+     ]
+    },
+    "WorldgenTerrainScenarios.OreDeposits_Should_MatchVanillaGoldenOnVanillaAndHoldComparableCountsOnStratum_When_ColumnsGenerated": {
+     "v": [
+      "Passed",
+      6.05
+     ],
+     "s": [
+      "Passed",
+      4.47
+     ]
+    },
+    "WorldgenTerrainScenarios.PeekedColumns_Should_MatchVanillaGolden_When_PeekedUpToEachPass": {
+     "v": [
+      "Passed",
+      2.57
+     ],
+     "s": [
+      "Passed",
+      2.83
+     ]
+    },
+    "WorldgenTerrainScenarios.PregeneratedColumns_Should_MatchTerrainGolden_When_PregenRuns": {
+     "v": [
+      "Passed",
+      6.16
+     ],
+     "s": [
+      "Passed",
+      4.65
+     ]
+    },
+    "WorldgenTerrainScenarios.ProspectingRockColumn_Should_MatchVanillaGolden_When_Probed": {
+     "v": [
+      "Passed",
+      1.2
+     ],
+     "s": [
+      "Passed",
+      0.88
+     ]
+    },
+    "WorldgenTerrainScenarios.Rivulets_Should_MatchVanillaGolden_When_ColumnsGenerated": {
+     "v": [
+      "Passed",
+      29.19
+     ],
+     "s": [
+      "Passed",
+      40.86
+     ]
+    },
+    "WorldgenTerrainScenarios.TerrainLayers_Should_MatchVanillaGolden_When_ColumnsGenerated": {
+     "v": [
+      "Passed",
+      1.28
+     ],
+     "s": [
+      "Passed",
+      1.93
+     ]
+    }
+   },
+   "totals": {
+    "vanilla": {
+     "passed": 93,
+     "total": 93,
+     "duration": 599.84
+    },
+    "stratum": {
+     "passed": 93,
+     "total": 93,
+     "duration": 618.89
+    }
+   },
+   "parity": true
   }
  ]
 }
