@@ -1,0 +1,13 @@
+{
+  "type": "content",
+  "modid": "stratumparityentity",
+  "name": "StratumParity Entity Probe",
+  "description": "Test-only assets: a copy of the straw dummy whose code path starts with chicken-, so Stratum's ambient fauna tick tier applies to it while every other property stays the dummy's.",
+  "authors": [ "Pixnop" ],
+  "version": "1.0.0",
+  "side": "universal",
+  "dependencies": {
+    "game": "",
+    "survival": ""
+  }
+}

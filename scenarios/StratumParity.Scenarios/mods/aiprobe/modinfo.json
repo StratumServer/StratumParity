@@ -1,0 +1,12 @@
+{
+  "type": "code",
+  "modid": "stratumparityai",
+  "name": "StratumParity AI Probe",
+  "description": "Test-only mod with an AI task that counts how often the task manager asks it whether it should execute, so a scenario can read the cadence of the task start scan.",
+  "authors": [ "Pixnop" ],
+  "version": "1.0.0",
+  "side": "server",
+  "dependencies": {
+    "game": ""
+  }
+}

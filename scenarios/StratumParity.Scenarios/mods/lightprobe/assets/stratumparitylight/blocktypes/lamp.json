@@ -1,0 +1,26 @@
+{
+	code: "lamp",
+	variantgroups: [
+		{ code: "color", states: ["red", "yellow", "green", "cyan", "blue", "magenta", "white"] }
+	],
+	drawtype: "cube",
+	resistance: 3.5,
+	lightAbsorption: 0,
+	sidesolid: { all: false },
+	sideopaque: { all: false },
+	lightHsvByType: {
+		"*-red": [0, 7, 16],
+		"*-yellow": [11, 7, 16],
+		"*-green": [21, 7, 16],
+		"*-cyan": [32, 7, 16],
+		"*-blue": [43, 7, 16],
+		"*-magenta": [53, 7, 16],
+		"*-white": [0, 0, 16]
+	},
+	textures: {
+		all: { base: "game:block/stone/rock/granite1" }
+	},
+	sounds: {
+		place: "game:block/loosestone"
+	}
+}
