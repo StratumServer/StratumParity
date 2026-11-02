@@ -11,14 +11,11 @@ namespace StratumParity.Scenarios;
 
 /// <summary>
 /// Probes Stratum's activation range for entity physics (Performance.Physics.ActivationRangeEnabled,
-/// on by default). The physics manager walks its tickable list on every server tick that owes at
-/// least one 1/30 s physics step and calls <c>OnPhysicsTick</c> once per owed step on every tickable
-/// whose entity is tracked (within 128 blocks of a player). Vanilla does so for every tracked entity.
-/// Stratum picks a stride per entity from <c>Entity.NearestPlayerDistance</c> and only steps the
-/// entity on the server ticks where <c>(physics tick counter + EntityId) % stride == 0</c>: stride 1
-/// under 24 blocks (NearActivationRadiusBlocks), FarTrackedTickStride (2) under 60
-/// (MidActivationRadiusBlocks), FarBandTickStride (3) beyond. The skipped steps are not made up
-/// for: an entity in the mid band lives at half speed, one in the far band at a third.
+/// on by default). Physics motion integrates on every owed 1/30 s step for every tracked entity on
+/// both flavors. Older Stratum builds also throttled OnPhysicsTick in the mid and far bands, which
+/// made entities move at half and a third speed. <see cref="PhysicsStrideSlowdown"/> keeps those
+/// exact published builds covered until the fix is released; every other Stratum build must match
+/// vanilla at every distance.
 ///
 /// What is counted. Every dummy gets a <see cref="PhysicsTap"/>, a decorator that takes the place of
 /// the dummy's own physics behavior in the manager's tickable list: it counts every
@@ -37,20 +34,17 @@ namespace StratumParity.Scenarios;
 /// under 13 blocks, the mid row 40 to 42, the far row 80 to 81. Every row stays at least 6 blocks
 /// from the band edges it was configured against (the Stratum leg reads the radii and strides back
 /// with /stratum get, vanilla uses Stratum's defaults, and a setup that does not fit fails as
-/// invalid). The six dummies are spawned in one synchronous step, so their ids are consecutive: any
-/// six consecutive ids hold exactly six, three and two entities whose stride lines up on a given
-/// step (strides 1, 2, 3), so the totals of a row keep the exact ratio 1, 1/2 and 1/3 whatever the
-/// catch-up pattern of the server ticks is. The assertions keep wide bounds around it anyway (a
-/// count with a bound, not a rate): 25 percent around 1/stride.
+/// invalid). The six dummies are spawned in one synchronous step, so their ids are consecutive.
+/// That makes the historical stride builds' row totals land exactly at 1, 1/2 and 1/3 of the near
+/// row whatever the catch-up pattern of the server ticks is. The old-build assertion keeps a 25
+/// percent bound around those ratios; fixed builds and vanilla assert exact equality.
 ///
-/// Per flavor. Vanilla: every dummy of every row takes exactly as many steps as the others. Stratum:
-/// the near row is exact and equal inside, the mid row sits within 25 percent of 1/2 of it and the
-/// far row within 25 percent of 1/3 (the plan's [0.4, 0.6] and [0.25, 0.42]). The fall scenario
-/// measures the same effect in time: three dummies fall the same height from rest and the ticks to
-/// land are compared inside the run (vanilla equal within two ticks, Stratum about 1, 2 and 3 times
-/// the near one, each within 20 percent), while the physics steps each one needed to land stay the
-/// same on both flavors, which is what "skipped steps are not compensated" means. The toggle
-/// scenario repeats the bands with ActivationRangeEnabled false: exact equality on both flavors.
+/// Per flavor. Vanilla and fixed Stratum builds: every dummy of every row takes exactly as many
+/// steps as the others, and the three falls land within two ticks of one another. The published
+/// Stratum builds listed by <see cref="PhysicsStrideSlowdown"/> retain their measured half/third
+/// step ratios and slower falls so the pinned parity lane stays truthful until those builds are
+/// replaced. The toggle scenario repeats the bands with ActivationRangeEnabled false: exact equality
+/// on both flavors.
 ///
 /// Two departures from the plan, both forced by the engine. The plan lets the three fall 30 blocks
 /// at +8, +40 and +90, but the distance that picks the band is the 3D one: a dummy that starts 30
@@ -106,31 +100,35 @@ public class PhysicsActivationProbes : AtlasScenarioBase
     private const int VanillaFallSpreadTicks = 2;
     private const double FallTolerance = 0.2;
 
+    private static readonly KnownDivergence PhysicsStrideSlowdown = new(
+        "StratumServer/Stratum#433", StratumBuild.Stable2, StratumBuild.Indev1, StratumBuild.Indev2);
+
     private readonly ITestOutputHelper output;
 
     public PhysicsActivationProbes(ITestOutputHelper output) => this.output = output;
 
     [AtlasScenario(TimeoutMs = 150_000)]
-    public async Task MidAndFarEntities_Should_GetFewerPhysicsSteps_When_ActivationRangeEnabled()
+    public async Task PhysicsActivationRange_Should_PreserveExpectedPhysicsCadence_When_Enabled()
     {
         Bands bands = await ReadBands(requireRangeEnabled: true);
         BandWindow window = await MeasureBands("pa-bands", bands);
         output.WriteLine($"{ServerFlavor.Name}: {Describe(window)}");
 
         AssertNearRowIsExact(window);
-        if (!ServerFlavor.IsStratum)
+        if (PhysicsStrideSlowdown.Applies)
         {
-            AssertAllRowsEqual(window, "vanilla steps every tracked entity on every physics step");
+            output.WriteLine($"{PhysicsStrideSlowdown.Tag}: checking the historical physics stride");
+            long near = window.Total(0);
+            AssertRatio(window, 1, near, bands.MidStride, "mid", bands);
+            AssertRatio(window, 2, near, bands.FarStride, "far", bands);
             return;
         }
 
-        long near = window.Total(0);
-        AssertRatio(window, 1, near, bands.MidStride, "mid", bands);
-        AssertRatio(window, 2, near, bands.FarStride, "far", bands);
+        AssertAllRowsEqual(window, "physics must run on every step in each tracked band");
     }
 
     [AtlasScenario(TimeoutMs = 150_000)]
-    public async Task MidBandFall_Should_TakeLonger_When_ActivationRangeEnabled()
+    public async Task PhysicsActivationRange_Should_PreserveExpectedFallTime_When_Enabled()
     {
         Bands bands = await ReadBands(requireRangeEnabled: true);
         var live = new List<Dummy>();
@@ -154,15 +152,16 @@ public class PhysicsActivationProbes : AtlasScenarioBase
             $"the three falls needed {fall.Steps[0]}, {fall.Steps[1]} and {fall.Steps[2]} physics steps to land on {ServerFlavor.Name} " +
             $"(spread {stepSpread}, at most {FallStepSpread}): a throttled entity must take the same steps, only later");
 
-        if (!ServerFlavor.IsStratum)
+        if (!PhysicsStrideSlowdown.Applies)
         {
             long spread = fall.Ticks.Max() - fall.Ticks.Min();
             Assert.True(spread <= VanillaFallSpreadTicks,
-                $"the falls at +4, +40 and +90 last {fall.Ticks[0]}, {fall.Ticks[1]} and {fall.Ticks[2]} ticks on vanilla " +
-                $"(spread {spread}, at most {VanillaFallSpreadTicks}): vanilla steps every tracked entity on every physics step");
+                $"the falls at +4, +40 and +90 last {fall.Ticks[0]}, {fall.Ticks[1]} and {fall.Ticks[2]} ticks on {ServerFlavor.Name} " +
+                $"(spread {spread}, at most {VanillaFallSpreadTicks}): every tracked entity must step on every physics pass");
             return;
         }
 
+        output.WriteLine($"{PhysicsStrideSlowdown.Tag}: checking the historical fall slowdown");
         AssertFallRatio(fall, 1, bands.MidStride, "mid", bands);
         AssertFallRatio(fall, 2, bands.FarStride, "far", bands);
     }
@@ -427,7 +426,8 @@ public class PhysicsActivationProbes : AtlasScenarioBase
     {
         long first = window.Steps[0][0];
         Assert.True(window.Steps.All(row => row.All(s => s == first)),
-            $"the three rows do not take the same number of physics steps on {ServerFlavor.Name} ({why}): {Describe(window)}");
+            $"the three rows do not take the same number of physics steps on {ServerFlavor.Name} " +
+            $"({why}; build {ServerFlavor.Version ?? "vanilla"}): {Describe(window)}");
     }
 
     private static void AssertRatio(BandWindow window, int row, long near, int stride, string name, Bands bands)

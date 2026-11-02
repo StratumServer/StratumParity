@@ -8,8 +8,11 @@ public static class StratumBuild
     /// <summary>The pinned lane (tag v1.22.7-stratum.2).</summary>
     public const string Stable2 = "1.22.7-stratum.2";
 
-    /// <summary>The scouted prerelease at the time of writing (tag v1.22.7-stratum.2-indev.1).</summary>
+    /// <summary>The earlier scouted prerelease (tag v1.22.7-stratum.2-indev.1).</summary>
     public const string Indev1 = "1.22.7-stratum.2-indev.1";
+
+    /// <summary>The current scouted prerelease (tag v1.22.7-stratum.2-indev.2).</summary>
+    public const string Indev2 = "1.22.7-stratum.2-indev.2";
 }
 
 /// <summary>
